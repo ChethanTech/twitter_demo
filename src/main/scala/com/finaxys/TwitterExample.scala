@@ -40,15 +40,13 @@ object TwitterExample {
 				jsonNode.get("user").get("lang").asText == "en"
 			val hasText = jsonNode.has("text")
 			
-			(isEnglish, hasText, jsonNode) match {
-				case (true, true, node) => val tokenizer = new StringTokenizer(node.get("text").asText())
-					while (tokenizer.hasMoreTokens) {
-						val token = tokenizer.nextToken().replaceAll("\\s*", "").toLowerCase()
-						if (token.nonEmpty) out.collect((token, 1))
-					}
-				case _ =>
+			if (isEnglish && hasText) {
+				val tokenizer = new StringTokenizer(jsonNode.get("text").asText())
+				while (tokenizer.hasMoreTokens) {
+					val token = tokenizer.nextToken().replaceAll("\\s*", "").toLowerCase()
+					if (token.nonEmpty) out.collect((token, 1))
+				}
 			}
 		}
 	}
-	
 }
