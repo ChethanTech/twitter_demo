@@ -24,7 +24,6 @@ object TwitterExample {
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
-		env.getConfig.setGlobalJobParameters(params)
 		val twitterSource = new TwitterSource(params.getProperties)
 		twitterSource.setCustomEndpointInitializer(new TweetFilter(params.get("uri"), params.get("http-method")))
 		env.addSource(twitterSource).flatMap(new SelectEnglishAndTokenizeFlatMap).keyBy(0).sum(1).print
