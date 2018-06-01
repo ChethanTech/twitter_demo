@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.weefin</groupId>
-    <artifactId>flink-kafka-demo</artifactId>
+    <artifactId>twitter_stream_to_kafka</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
-    <name>Flink &amp; Kafka simple demo</name>
+    <name>Twitter stream to kafka</name>
 
     <repositories>
         <repository>
