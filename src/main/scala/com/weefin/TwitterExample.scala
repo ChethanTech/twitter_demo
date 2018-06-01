@@ -59,7 +59,7 @@ object TwitterExample {
 					}
 				}
 			} catch {
-				case e: JsonMappingException => print(e.getMessage)
+				case e: JsonMappingException => logger.info(e.getMessage)
 			}
 		}
 	}
