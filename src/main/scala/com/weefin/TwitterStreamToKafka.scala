@@ -17,13 +17,14 @@ object TwitterStreamToKafka {
 			logger
 				.error("Invalid arguments. Usage: TwitterStreamToKafka --uri <uri> --http-method <method> " +
 					"--twitter-source.consumerKey <key> --twitter-source.consumerSecret <secret> --twitter-source" +
-					".token <token> --twitter-source.tokenSecret <tokenSecret> --broker-list <list> --topic.id <id>")
+					".token <token> --twitter-source.tokenSecret <tokenSecret> --bootstrap.servers <servers> --topic" +
+					".id <id>")
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
 		val twitterSource = new TwitterSource(params.getProperties)
 		twitterSource.setCustomEndpointInitializer(new TweetFilter(params.get("uri"), params.get("http-method")))
-		val producer = new FlinkKafkaProducer011[String](params.get("broker-list"), params.get("topic.id"),
+		val producer = new FlinkKafkaProducer011[String](params.get("bootstrap.servers"), params.get("topic.id"),
 			new SimpleStringSchema)
 		producer.setWriteTimestampToKafka(true)
 		env.addSource(twitterSource).addSink(producer)
@@ -33,7 +34,7 @@ object TwitterStreamToKafka {
 	private def validateArguments(params: ParameterTool) = {
 		params.has(TwitterSource.CONSUMER_KEY) && params.has(TwitterSource.CONSUMER_SECRET) &&
 			params.has(TwitterSource.TOKEN) && params.has(TwitterSource.TOKEN_SECRET) && params.has("uri") &&
-			params.has("http-method") && params.has("broker-list") && params.has("topic.id")
+			params.has("http-method") && params.has("bootstrap.servers") && params.has("topic.id")
 	}
 	
 	private class TweetFilter(uri: String, httpMethod: String)
