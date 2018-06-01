@@ -17,11 +17,17 @@ tar -xzf flink-1.5.0-bin-scala_2.11.tgz
 mv zookeeper-3.4.12/conf/zoo_sample.cfg zookeeper-3.4.12/conf/zoo.cfg
 mkdir zookeeper-3.4.12/data
 ```
-in `zookeeper-3.4.12/conf/zoo.cfg` set `dataDir` to `/<zookeeper_home_directory>/data`
+In `zookeeper-3.4.12/conf/zoo.cfg` set `dataDir` to `/<zookeeper_home_directory>/data`
 ### Kafka
-in `kafka_2.11-1.1.0/config/server.properties` set:
+In `kafka_2.11-1.1.0/config/server.properties` set:
 - `listeners` to `PLAINTEXT://:9092` (commented by default)
 - `log.dirs` to `/<kafka_home_directory>/kafka-logs`
+
+Create a new topic named `streaming.twitter.statuses`
+```bash
+./platform/kafka_2.11-1.1.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 
+--partitions 1 --topic "streaming.twitter.statuses"
+```
 ## Start
 ```bash
 ./zookeeper-3.4.12/bin/zkServer.sh start zoo.cfg

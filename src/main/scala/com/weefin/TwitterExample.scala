@@ -7,7 +7,9 @@ import org.apache.flink.api.common.functions.FlatMapFunction
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.{JsonMappingException, JsonNode, ObjectMapper}
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 import org.apache.flink.streaming.connectors.twitter.TwitterSource
+import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.util.Collector
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -17,8 +19,8 @@ object TwitterExample {
 	def main(args: Array[String]) {
 		val params = ParameterTool.fromArgs(args)
 		if (!validateArguments(params)) {
-			logger.error(
-				"Invalid arguments. Usage: TwitterExample --uri <uri> --http-method <method> --twitter-source" +
+			logger
+				.error("Invalid arguments. Usage: TwitterExample --uri <uri> --http-method <method> --twitter-source" +
 					".consumerKey <key> --twitter-source.consumerSecret <secret> --twitter-source.token <token> " +
 					"--twitter-source.tokenSecret <tokenSecret>")
 			return
@@ -26,7 +28,10 @@ object TwitterExample {
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
 		val twitterSource = new TwitterSource(params.getProperties)
 		twitterSource.setCustomEndpointInitializer(new TweetFilter(params.get("uri"), params.get("http-method")))
-		env.addSource(twitterSource).flatMap(new SelectEnglishAndTokenizeFlatMap).keyBy(0).sum(1).print
+		val myProducer = new FlinkKafkaProducer011[String]("localhost:9092", "streaming.twitter.raw_statuses",
+			new SimpleStringSchema)
+		myProducer.setWriteTimestampToKafka(true)
+		env.addSource(twitterSource).addSink(myProducer)
 		env.execute("Twitter Streaming Example")
 	}
 	
