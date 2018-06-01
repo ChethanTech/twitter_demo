@@ -14,7 +14,7 @@ tar -xzf flink-1.5.0-bin-scala_2.11.tgz
 ## Configuration
 ### Zookeeper
 ```bash
-mv zookeeper-3.4.12/conf/zoo_sample.cfgas zookeeper-3.4.12/conf/zoo.cfg
+mv zookeeper-3.4.12/conf/zoo_sample.cfg zookeeper-3.4.12/conf/zoo.cfg
 mkdir zookeeper-3.4.12/data
 ```
 in `zookeeper-3.4.12/conf/zoo.cfg` set `dataDir` to `/<zookeeper_home_directory>/data`
