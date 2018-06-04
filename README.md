@@ -29,19 +29,19 @@ tar -xzf flink-1.5.0-bin-scala_2.11.tgz
 ```
 #### Elasticsearch
 ```bash
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.tar.gz
-tar -xzf elasticsearch-6.2.4.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.9.tar.gz
+tar -xzf elasticsearch-5.6.9.tar.gz
 ```
 #### Kibana
 ##### Linux
 ```bash
-wget https://artifacts.elastic.co/downloads/kibana/kibana-6.2.4-linux-x86_64.tar.gz
-tar -xzf kibana-6.2.4-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/kibana/kibana-5.6.9-linux-x86_64.tar.gz
+tar -xzf kibana-5.6.9-linux-x86_64.tar.gz
 ```
 ##### Mac
 ```bash
-wget https://artifacts.elastic.co/downloads/kibana/kibana-6.2.4-darwin-x86_64.tar.gz
-tar -xzf kibana-6.2.4-darwin-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/kibana/kibana-5.6.9-darwin-x86_64.tar.gz
+tar -xzf kibana-5.6.9-darwin-x86_64.tar.gz
 ```
 ### Start
 ```bash
@@ -54,8 +54,8 @@ tar -xzf kibana-6.2.4-darwin-x86_64.tar.gz
     --partitions 1 \
     --topic "<topic_name>"
 ./flink-1.5.0/bin/start-cluster.sh
-./elasticsearch-6.2.4/bin/elasticsearch
-./kibana-6.2.4-darwin-x86_64/bin/kibana
+./elasticsearch-5.6.9/bin/elasticsearch
+./kibana-5.6.9-darwin-x86_64/bin/kibana
 ```
 ### Stop
 ```bash
