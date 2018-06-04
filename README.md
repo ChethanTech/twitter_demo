@@ -86,5 +86,6 @@ cd ..
 ./platform/flink-1.5.0/bin/flink run flink-kafka-demo/twitter_word_count/target/twitter_word_count-0.1.jar \
     --bootstrap.servers "<connect>" \
     --zookeeper.connect "<servers>" \
+    --group.id "<id>" \
     --topic.id "<id>"
 ```

@@ -19,14 +19,14 @@ object TwitterWordCount {
 		if (!validateArguments(params)) {
 			logger
 				.error("Invalid arguments. Usage: TwitterWordCount --zookeeper.connect <connect> --bootstrap.servers" +
-					" <servers> --topic.id <id>")
+					" <servers> --group.id <id> --topic.id <id>")
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
 		val properties = new Properties()
 		properties.setProperty("bootstrap.servers", params.get("bootstrap.servers"))
 		properties.setProperty("zookeeper.connect", params.get("zookeeper.connect"))
-		//		properties.setProperty("group.id", "test")
+		properties.setProperty("group.id", params.get("group.id"))
 		val consumer = new FlinkKafkaConsumer011[String](params.get("topic.id"), new SimpleStringSchema(), properties)
 		consumer.setStartFromEarliest()
 		env.addSource(consumer).flatMap(new SelectEnglishAndTokenizeFlatMap).keyBy(0).sum(1).print
@@ -57,6 +57,6 @@ object TwitterWordCount {
 	}
 	
 	private def validateArguments(params: ParameterTool) = {
-		params.has("zookeeper.connect") && params.has("bootstrap.servers") && params.has("topic.id")
+		params.has("zookeeper.connect") && params.has("bootstrap.servers") && params.has("topic.id") && params.has("group.id")
 	}
 }
