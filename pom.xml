@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.weefin.tekdemo</groupId>
+    <groupId>com.weefin.demovm</groupId>
     <artifactId>flink_kafka_demo</artifactId>
     <version>0.1</version>
     <packaging>pom</packaging>
@@ -13,7 +13,7 @@
 
     <modules>
         <module>twitter_stream_to_kafka</module>
-        <module>twitter_word_count</module>
+        <module>kafka_to_elastic</module>
     </modules>
 
     <properties>
