@@ -1,4 +1,4 @@
-package com.weefin
+package com.weefin.tekdemo
 
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.Properties

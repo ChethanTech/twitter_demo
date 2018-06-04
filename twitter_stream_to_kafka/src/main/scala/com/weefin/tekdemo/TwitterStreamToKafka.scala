@@ -1,4 +1,4 @@
-package com.weefin
+package com.weefin.tekdemo
 
 import com.twitter.hbc.core.endpoint.RawEndpoint
 import org.apache.flink.api.common.serialization.SimpleStringSchema

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 	
 	<parent>
-		<groupId>com.weefin</groupId>
+		<groupId>com.weefin.tekdemo</groupId>
 		<artifactId>flink_kafka_demo</artifactId>
 		<version>0.1</version>
 		<relativePath>..</relativePath>
