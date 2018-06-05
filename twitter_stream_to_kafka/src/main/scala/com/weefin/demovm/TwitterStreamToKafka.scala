@@ -10,6 +10,9 @@ import org.slf4j.{Logger, LoggerFactory}
 
 object TwitterStreamToKafka {
 	val logger: Logger = LoggerFactory.getLogger(getClass)
+	val DEFAULT_URI = "/1.1/statuses/sample.json"
+	val DEFAULT_HTTP_METHOD = "GET"
+	val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
 	
 	def main(args: Array[String]) {
 		val params = ParameterTool.fromArgs(args)
@@ -17,15 +20,17 @@ object TwitterStreamToKafka {
 			logger
 				.error("Invalid arguments. Usage: TwitterStreamToKafka --uri <uri> --http-method <method> " +
 					"--twitter-source.consumerKey <key> --twitter-source.consumerSecret <secret> --twitter-source" +
-					".token <token> --twitter-source.tokenSecret <tokenSecret> --bootstrap.servers <servers> --topic" +
-					".id <id>")
+					".token <token> --twitter-source.tokenSecret <tokenSecret> --bootstrap.servers <server1[," +
+					"server2," + "." + "..]> --topic.id <id>")
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
 		val twitterSource = new TwitterSource(params.getProperties)
-		twitterSource.setCustomEndpointInitializer(new TweetFilter(params.get("uri"), params.get("http-method")))
-		val producer = new FlinkKafkaProducer011[String](params.get("bootstrap.servers"), params.get("topic.id"),
-			new SimpleStringSchema)
+		twitterSource
+			.setCustomEndpointInitializer(
+				new TweetFilter(params.get("uri", DEFAULT_URI), params.get("http-method", DEFAULT_HTTP_METHOD)))
+		val producer = new FlinkKafkaProducer011[String](params.get("bootstrap.servers", DEFAULT_BOOTSTRAP_SERVERS),
+			params.get("topic.id"), new SimpleStringSchema)
 		producer.setWriteTimestampToKafka(true)
 		env.addSource(twitterSource).addSink(producer)
 		env.execute("Twitter stream to kafka")
@@ -33,8 +38,7 @@ object TwitterStreamToKafka {
 	
 	private def validateArguments(params: ParameterTool) = {
 		params.has(TwitterSource.CONSUMER_KEY) && params.has(TwitterSource.CONSUMER_SECRET) &&
-			params.has(TwitterSource.TOKEN) && params.has(TwitterSource.TOKEN_SECRET) && params.has("uri") &&
-			params.has("http-method") && params.has("bootstrap.servers") && params.has("topic.id")
+			params.has(TwitterSource.TOKEN) && params.has(TwitterSource.TOKEN_SECRET) && params.has("topic.id")
 	}
 	
 	private class TweetFilter(uri: String, httpMethod: String)
