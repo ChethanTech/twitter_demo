@@ -27,6 +27,7 @@ In `kafka_2.11-1.1.0/config/server.properties` set:
 wget http://apache.mediamirrors.org/flink/flink-1.5.0/flink-1.5.0-bin-scala_2.11.tgz
 tar -xzf flink-1.5.0-bin-scala_2.11.tgz
 ```
+In `flink-1.5.0/conf/fliink-conf.yaml` set `taskmanager.numberOfTaskSlots` to 10
 #### Elasticsearch
 ```bash
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.9.tar.gz
