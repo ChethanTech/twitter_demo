@@ -22,15 +22,13 @@ object KafkaToElastic {
 		val params = ParameterTool.fromArgs(args)
 		if (!validateArguments(params)) {
 			logger
-				.error("Invalid arguments. Usage: KafkaToElastic --zookeeper.connect <connect> --bootstrap.servers" +
-					" <servers> --group.id <id> --topic.id <id> --cluster.name <name> --index.name <name> --type" +
-					".name <name>")
+				.error("Invalid arguments. Usage: KafkaToElastic --bootstrap.servers <servers> --group.id <id> " +
+					"--topic.id <id> --cluster.name <name> --index.name <name> --type.name <name>")
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
 		val properties = new Properties()
 		properties.setProperty("bootstrap.servers", params.get("bootstrap.servers"))
-		properties.setProperty("zookeeper.connect", params.get("zookeeper.connect"))
 		properties.setProperty("group.id", params.get("group.id"))
 		val consumer = new FlinkKafkaConsumer011[String](params.get("topic.id"), new SimpleStringSchema(), properties)
 		val config = Map("cluster.name" -> params.get("cluster.name"), "bulk.flush.max.actions" -> "1")
@@ -52,7 +50,7 @@ object KafkaToElastic {
 	}
 	
 	private def validateArguments(params: ParameterTool) = {
-		params.has("zookeeper.connect") && params.has("bootstrap.servers") && params.has("topic.id") &&
-			params.has("group.id") && params.has("cluster.name") && params.has("index.name") && params.has("type.name")
+		params.has("bootstrap.servers") && params.has("topic.id") && params.has("group.id") &&
+			params.has("cluster.name") && params.has("index.name") && params.has("type.name")
 	}
 }

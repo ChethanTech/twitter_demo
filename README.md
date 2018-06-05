@@ -86,7 +86,6 @@ cd ..
 ```bash
 ./platform/flink-1.5.0/bin/flink run flink-kafka-demo/kafka_to_elastic/target/kafka_to_elastic-0.1.jar \
     --bootstrap.servers "<connect>" \
-    --zookeeper.connect "<servers>" \
     --group.id "<id>" \
     --topic.id "<id>"
 ```
