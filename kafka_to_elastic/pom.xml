@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 	
 	<parent>
-		<groupId>com.weefin.demovm</groupId>
-		<artifactId>flink_kafka_demo</artifactId>
+		<groupId>com.weefin.twitterdemo</groupId>
+		<artifactId>twitter_demo</artifactId>
 		<version>0.1</version>
 		<relativePath>..</relativePath>
 	</parent>
@@ -79,7 +79,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.weefin.demovm.KafkaToElastic</mainClass>
+                                    <mainClass>com.weefin.twitterdemo.KafkaToElastic</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>

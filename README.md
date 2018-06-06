@@ -1,4 +1,4 @@
-# Flink/Kafka demo
+# Twitter demo
 ## Platform
 ### Installation
 ```bash
@@ -72,7 +72,7 @@ cd ..
 ```
 ### Twitter stream to kafka
 ```bash
-./platform/flink-1.5.0/bin/flink run flink-kafka-demo/twitter_stream_to_kafka/target/twitter_stream_to_kafka-0.1.jar \
+./platform/flink-1.5.0/bin/flink run twitter_demo/twitter_stream_to_kafka/target/twitter_stream_to_kafka-0.1.jar \
     --uri "<uri>" \
     --http-method "<method>" \
     --twitter-source.consumerKey "<key>" \
@@ -94,7 +94,7 @@ cd ..
     - **Required**
 ### Kafka to Elasticsearch
 ```bash
-./platform/flink-1.5.0/bin/flink run flink-kafka-demo/kafka_to_elastic/target/kafka_to_elastic-0.1.jar \
+./platform/flink-1.5.0/bin/flink run twitter_demo/kafka_to_elastic/target/kafka_to_elastic-0.1.jar \
     --bootstrap.servers "<server1[,server2,...]>" \
     --group.id "<id>" \
     --topic.id "<id>" \

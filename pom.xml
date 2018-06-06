@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.weefin.demovm</groupId>
-    <artifactId>flink_kafka_demo</artifactId>
+    <groupId>com.weefin.twitterdemo</groupId>
+    <artifactId>twitter_demo</artifactId>
     <version>0.1</version>
     <packaging>pom</packaging>
 
-    <name>Flink &amp; Kafka demo</name>
+    <name>Twitter demo</name>
 
     <modules>
         <module>twitter_stream_to_kafka</module>

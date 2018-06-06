@@ -1,4 +1,4 @@
-package com.weefin.demovm
+package com.weefin.twitterdemo
 
 import java.net.InetSocketAddress
 import java.util.Properties
