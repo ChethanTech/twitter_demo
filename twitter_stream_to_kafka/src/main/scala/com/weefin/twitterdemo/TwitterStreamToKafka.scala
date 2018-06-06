@@ -1,6 +1,6 @@
 package com.weefin.twitterdemo
 
-import com.twitter.hbc.core.endpoint.RawEndpoint
+import com.weefin.twitterdemo.utils.twitter.RawTwitterSource
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
@@ -25,10 +25,10 @@ object TwitterStreamToKafka {
 			return
 		}
 		val env = StreamExecutionEnvironment.getExecutionEnvironment
-		val twitterSource = new TwitterSource(params.getProperties)
-		twitterSource
-			.setCustomEndpointInitializer(
-				new TweetFilter(params.get("uri", DEFAULT_URI), params.get("http-method", DEFAULT_HTTP_METHOD)))
+		val twitterSource = RawTwitterSource(params.get("uri", DEFAULT_URI),
+			params.get("http-method", DEFAULT_HTTP_METHOD), params.get(TwitterSource.CONSUMER_KEY),
+			params.get(TwitterSource.CONSUMER_SECRET), params.get(TwitterSource.TOKEN),
+			params.get(TwitterSource.TOKEN_SECRET))
 		val producer = new FlinkKafkaProducer011[String](params.get("bootstrap.servers", DEFAULT_BOOTSTRAP_SERVERS),
 			params.get("topic.id"), new SimpleStringSchema)
 		producer.setWriteTimestampToKafka(true)
@@ -40,10 +40,4 @@ object TwitterStreamToKafka {
 		params.has(TwitterSource.CONSUMER_KEY) && params.has(TwitterSource.CONSUMER_SECRET) &&
 			params.has(TwitterSource.TOKEN) && params.has(TwitterSource.TOKEN_SECRET) && params.has("topic.id")
 	}
-	
-	private class TweetFilter(uri: String, httpMethod: String)
-		extends TwitterSource.EndpointInitializer with Serializable {
-		override def createEndpoint: RawEndpoint = new RawEndpoint(uri, httpMethod)
-	}
-	
 }

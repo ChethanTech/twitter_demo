@@ -14,6 +14,7 @@
     <modules>
         <module>twitter_stream_to_kafka</module>
         <module>kafka_to_elastic</module>
+        <module>utils</module>
     </modules>
 
     <properties>

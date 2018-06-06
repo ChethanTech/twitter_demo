@@ -39,6 +39,11 @@
             <artifactId>hbc-core</artifactId>
             <version>2.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.weefin.twitterdemo</groupId>
+            <artifactId>utils_${scala.binary.version}</artifactId>
+            <version>0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
