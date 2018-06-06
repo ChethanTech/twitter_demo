@@ -8,36 +8,41 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 import org.apache.flink.streaming.connectors.twitter.TwitterSource
 import org.slf4j.{Logger, LoggerFactory}
 
-object TwitterStreamToKafka {
+object TwitterStreamToKafka extends App {
 	val logger: Logger = LoggerFactory.getLogger(getClass)
-	val DEFAULT_URI = "/1.1/statuses/sample.json"
-	val DEFAULT_HTTP_METHOD = "GET"
-	val DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
-	
-	def main(args: Array[String]) {
-		val params = ParameterTool.fromArgs(args)
-		if (!validateArguments(params)) {
-			logger
-				.error("Invalid arguments. Usage: TwitterStreamToKafka --uri <uri> --http-method <method> " +
-					"--twitter-source.consumerKey <key> --twitter-source.consumerSecret <secret> --twitter-source" +
-					".token <token> --twitter-source.tokenSecret <tokenSecret> --bootstrap.servers <server1[," +
-					"server2," + "." + "..]> --topic.id <id>")
-			return
-		}
-		val env = StreamExecutionEnvironment.getExecutionEnvironment
-		val twitterSource = RawTwitterSource(params.get("uri", DEFAULT_URI),
-			params.get("http-method", DEFAULT_HTTP_METHOD), params.get(TwitterSource.CONSUMER_KEY),
-			params.get(TwitterSource.CONSUMER_SECRET), params.get(TwitterSource.TOKEN),
-			params.get(TwitterSource.TOKEN_SECRET))
-		val producer = new FlinkKafkaProducer011[String](params.get("bootstrap.servers", DEFAULT_BOOTSTRAP_SERVERS),
-			params.get("topic.id"), new SimpleStringSchema)
-		producer.setWriteTimestampToKafka(true)
-		env.addSource(twitterSource).addSink(producer)
-		env.execute("Twitter stream to kafka")
+	val defaultUri = "/1.1/statuses/sample.json"
+	val defaultHttpMethod = "GET"
+	val defaultBootstrapServers = "localhost:9092"
+	val params = ParameterTool.fromArgs(args)
+	if (!validateArguments) {
+		logErrorInvalidArguments()
+		sys.exit(1)
 	}
+	val env = StreamExecutionEnvironment.getExecutionEnvironment
+	val source = getTwitterSource
+	val sink = getProducer
+	env.addSource(source).addSink(sink)
+	env.execute("Twitter stream to kafka")
 	
-	private def validateArguments(params: ParameterTool) = {
-		params.has(TwitterSource.CONSUMER_KEY) && params.has(TwitterSource.CONSUMER_SECRET) &&
-			params.has(TwitterSource.TOKEN) && params.has(TwitterSource.TOKEN_SECRET) && params.has("topic.id")
+	private def validateArguments = params.has(TwitterSource.CONSUMER_KEY) &&
+		params.has(TwitterSource.CONSUMER_SECRET) && params.has(TwitterSource.TOKEN) &&
+		params.has(TwitterSource.TOKEN_SECRET) && params.has("topic.id")
+	
+	private def logErrorInvalidArguments(): Unit = logger
+		.error("Invalid arguments. Usage: TwitterStreamToKafka --uri <uri> --http-method <method> " +
+			"--twitter-source.consumerKey <key> --twitter-source.consumerSecret <secret> --twitter-source" +
+			".token <token> --twitter-source.tokenSecret <tokenSecret> --bootstrap.servers <server1[,server2," +
+			"...]> --topic.id <id>")
+	
+	private def getTwitterSource = RawTwitterSource(params.get("uri", defaultUri),
+		params.get("http-method", defaultHttpMethod), params.get(TwitterSource.CONSUMER_KEY),
+		params.get(TwitterSource.CONSUMER_SECRET), params.get(TwitterSource.TOKEN),
+		params.get(TwitterSource.TOKEN_SECRET))
+	
+	private def getProducer = {
+		val p = new FlinkKafkaProducer011[String](params.get("bootstrap.servers", defaultBootstrapServers),
+			params.get("topic.id"), new SimpleStringSchema)
+		p.setWriteTimestampToKafka(true)
+		p
 	}
 }
