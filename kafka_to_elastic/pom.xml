@@ -8,7 +8,6 @@
 		<groupId>com.weefin.twitterdemo</groupId>
 		<artifactId>twitter_demo</artifactId>
 		<version>0.1</version>
-		<relativePath>..</relativePath>
 	</parent>
 
     <artifactId>kafka_to_elastic</artifactId>
