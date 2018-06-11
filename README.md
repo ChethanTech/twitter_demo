@@ -68,7 +68,7 @@ In `kafka-manager-1.3.3.17/conf/application.conf`, set `kafka-manager.zkhosts` t
 You can safely remove `1.3.3.17`, `*.tgz` & `*.tar.gz` directories
 ## Start platform script
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
        
 ./zookeeper-3.4.12/bin/zkServer.sh start zookeeper-3.4.12/conf/zoo.cfg &
 ./kafka_2.11-1.1.0/bin/kafka-server-start.sh kafka_2.11-1.1.0/config/server.properties &
@@ -92,7 +92,7 @@ You then have access to:
         - Kafka Version to `1.0.0`
 ## Stop platform script
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 
 ./flink-1.5.0/bin/stop-cluster.sh
 ./kafka_2.11-1.1.0/bin/kafka-server-stop.sh
