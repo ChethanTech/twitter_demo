@@ -1,5 +1,6 @@
 # Twitter demo
 ## Platform installation
+Follow these steps to run the project locally
 ```bash
 git clone https://github.com/ndrpnt/flink-kafka-demo.git
 mkdir platform
@@ -63,6 +64,8 @@ tar -xzf 1.3.3.17.tar.gz
 unzip -a 1.3.3.17/target/universal/kafka-manager-1.3.3.17.zip
 ```
 In `kafka-manager-1.3.3.17/conf/application.conf`, set `kafka-manager.zkhosts` to `"localhost:2181"`
+### Cleanup
+You can safely remove `1.3.3.17`, `*.tgz` & `*.tar.gz` directories
 ## Start platform script
 ```bash
 #!/bin/bash
@@ -78,11 +81,11 @@ echo $! > /tmp/cerebro.pid
 ./kafka-manager-1.3.3.17/bin/kafka-manager -Dhttp.port=9001
 ```
 You then have access to:
-- Flink at `http://localhost:8081`
-- Kibana at `http://localhost:5601`
-- Cerebro at `http://localhost:9000`
+- Flink dashboard at `http://localhost:8081`
+- Kibana dashboard at `http://localhost:5601`
+- Cerebro dashboard at `http://localhost:9000`
     - Connect to `http://localhost:9200`
-- Kafka Manager at `http://localhost:9001`
+- Kafka Manager dashboard at `http://localhost:9001`
     - Select add cluster and set:
         - A Cluster Name
         - Cluster Zookeeper Hosts to `localhost:2181`
