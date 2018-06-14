@@ -134,10 +134,13 @@ You can safely remove `1.3.3.17`, `*.tgz` & `*.tar.gz` directories
 #!/usr/bin/env bash
        
 ./zookeeper-3.4.12/bin/zkServer.sh start zookeeper-3.4.12/conf/zoo.cfg &
+sleep 3
 ./kafka_2.11-1.1.0/bin/kafka-server-start.sh kafka_2.11-1.1.0/config/server.properties &
 ./flink-1.5.0/bin/start-cluster.sh &
-./elasticsearch-5.6.9/bin/elasticsearch -p /tmp/elasticsearch.pid &
-./kibana-5.6.9-darwin-x86_64/bin/kibana &
+./elasticsearch-6.3.0/bin/elasticsearch -p /tmp/elasticsearch.pid &
+./logstash-6.3.0/bin/logstash &
+echo $! > /tmp/logstash.pid
+./kibana-6.3.0-darwin-x86_64/bin/kibana &
 echo $! > /tmp/kibana.pid
 ./cerebro-0.7.3/bin/cerebro &
 echo $! > /tmp/cerebro.pid
@@ -162,6 +165,7 @@ You then have access to:
 ./zookeeper-3.4.12/bin/zkServer.sh stop
 kill -SIGTERM "$(< /tmp/cerebro.pid)"
 kill -SIGTERM "$(< /tmp/kibana.pid)"
+kill -SIGTERM "$(< /tmp/logstash.pid)"
 kill -SIGTERM "$(< /tmp/elasticsearch.pid)"
 kill -SIGTERM "$(< kafka-manager-1.3.3.17/RUNNING_PID)"
 ```
