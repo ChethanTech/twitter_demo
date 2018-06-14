@@ -160,5 +160,5 @@ kill -SIGTERM "$(< kafka-manager-1.3.3.17/RUNNING_PID)"
 ## Build Flink jobs
 ```bash
 cd twitter_demo
-mvn clean install
+mvn package
 ```
