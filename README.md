@@ -1,4 +1,5 @@
 # Twitter demo
+A simple demo using Flink, Kafka & Elasticsearch using twitter free streaming data
 ## Platform installation
 Follow these steps to run the project locally
 ```bash
