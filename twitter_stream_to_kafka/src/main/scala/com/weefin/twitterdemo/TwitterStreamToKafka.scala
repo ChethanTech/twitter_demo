@@ -1,9 +1,10 @@
 package com.weefin.twitterdemo
 
 import com.weefin.twitterdemo.utils.twitter.RawTwitterSource
+import org.apache.flink.api.common.functions.FilterFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 import org.apache.flink.streaming.connectors.twitter.TwitterSource
 import org.slf4j.{Logger, LoggerFactory}
@@ -21,8 +22,18 @@ object TwitterStreamToKafka extends App {
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
 	val source = getTwitterSource
 	val sink = getProducer
-	env.addSource(source).addSink(sink)
+	logger.info("Job *Twitter stream to kafka* started")
+	env.addSource(source).filter(LogFilter).addSink(sink)
 	env.execute("Twitter stream to kafka")
+	
+	private object LogFilter extends FilterFunction[String] {
+		private val logger = LoggerFactory.getLogger(getClass)
+		
+		override def filter(message: String): Boolean = {
+			logger.trace("Received status: {}…", message.substring(0, 100))
+			true
+		}
+	}
 	
 	private def validateArguments = params.has(TwitterSource.CONSUMER_KEY) &&
 		params.has(TwitterSource.CONSUMER_SECRET) && params.has(TwitterSource.TOKEN) &&
