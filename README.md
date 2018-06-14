@@ -86,23 +86,29 @@ wget http://central.maven.org/maven2/org/apache/kafka/kafka-log4j-appender/1.1.0
 wget http://central.maven.org/maven2/org/apache/kafka/kafka-clients/1.1.0/kafka-clients-1.1.0.jar
 cd ../..
 ```
-### [Elasticsearch](https://www.elastic.co/fr/products/elasticsearch)
+### [Elasticsearch](https://www.elastic.co/products/elasticsearch)
 Elasticsearch is a distributed, RESTful search and analytics engine
 ```bash
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.9.tar.gz
-tar -xzf elasticsearch-5.6.9.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.3.0.tar.gz
+tar -xzf elasticsearch-6.3.0.tar.gz
+```
+### [Logstash](https://www.elastic.co/products/logstash)
+Logstash is a data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it, and then sends it to a "stash".
+```bash
+wget https://artifacts.elastic.co/downloads/logstash/logstash-6.3.0.tar.gz
+tar -xzf logstash-6.3.0.tar.gz
 ```
 ### [Kibana](https://www.elastic.co/products/kibana)
 Kibana lets you visualize your Elasticsearch data
 #### Linux
 ```bash
-wget https://artifacts.elastic.co/downloads/kibana/kibana-5.6.9-linux-x86_64.tar.gz
-tar -xzf kibana-5.6.9-linux-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/kibana/kibana-6.3.0-linux-x86_64.tar.gz
+tar -xzf kibana-6.3.0-linux-x86_64.tar.gz
 ```
 #### Mac
 ```bash
-wget https://artifacts.elastic.co/downloads/kibana/kibana-5.6.9-darwin-x86_64.tar.gz
-tar -xzf kibana-5.6.9-darwin-x86_64.tar.gz
+wget https://artifacts.elastic.co/downloads/kibana/kibana-6.3.0-darwin-x86_64.tar.gz
+tar -xzf kibana-6.3.0-darwin-x86_64.tar.gz
 ```
 ### [Cerebro](https://github.com/lmenezes/cerebro)
 An elasticsearch web admin
