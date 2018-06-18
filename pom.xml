@@ -13,7 +13,6 @@
 
     <modules>
         <module>twitter_stream_to_kafka</module>
-        <module>kafka_to_elastic</module>
         <module>split_by_status_type</module>
         <module>utils</module>
     </modules>
