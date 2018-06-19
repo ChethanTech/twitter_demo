@@ -21,8 +21,13 @@ curl -XPUT 'http://localhost:9200/raw_statuses' -d '{
      "type": "text",
      "store": true
     },
-    "type": {
-     "type": "keyword"
+    "quoted_text": {
+     "type": "text",
+     "store": true
+    },
+    "retweeted_text": {
+     "type": "text",
+     "store": true
     },
     "message": {
      "type": "text",
