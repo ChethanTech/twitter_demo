@@ -1,4 +1,8 @@
 # Twitter stream to kafka
+Connect to any twitter streaming endpoint (`https://stream.twitter.com/...`) and push the received content to a specified Kafka topic.
+
+This could be achieved with Logstash twitter input plugin too, but would limit configuration options greatly.
+## Usage
 ```bash
 ./platform/flink-1.5.0/bin/flink run twitter_demo/twitter_stream_to_kafka/target/twitter_stream_to_kafka-0.1.jar \
     --uri "<uri>" \
