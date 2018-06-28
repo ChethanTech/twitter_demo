@@ -19,7 +19,7 @@ object CountHashtags extends App {
 	val source = getConsumer
 	val sink = getProducer
 	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption).flatMap(HashtagMap)
-		.filter(new HashtagFilter(params)).addSink(sink)
+		.map(_.toLowerCase).filter(new HashtagFilter(params)).addSink(sink)
 	env.execute("Count hashtags")
 	
 	private def HashtagMap = (status: Option[Status], out: Collector[String]) => {
@@ -37,7 +37,7 @@ object CountHashtags extends App {
 		private val blackList = params.blackList.map(_.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet)
 		
 		override def filter(value: String): Boolean = if (whiteList.exists(_.nonEmpty)) whiteList.get
-			.contains(value.toLowerCase) else !blackList.exists(_.contains(value.toLowerCase))
+			.contains(value) else !blackList.exists(_.contains(value))
 	}
 	
 	private def getConsumer = new FlinkKafkaConsumer011[String](params.consumerTopicId.get, new SimpleStringSchema(),
