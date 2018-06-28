@@ -10,11 +10,11 @@
 		<version>0.1</version>
 	</parent>
 
-    <artifactId>split_by_status_type</artifactId>
+    <artifactId>count_hashtags</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
-    <name>Split by status type</name>
+    <name>Count Hashtags</name>
 
     <dependencies>
         <dependency>
@@ -78,7 +78,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.weefin.twitterdemo.SplitByStatusType</mainClass>
+                                    <mainClass>com.weefin.twitterdemo.CountHashtags</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>

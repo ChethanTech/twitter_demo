@@ -13,7 +13,7 @@
 
     <modules>
         <module>twitter_stream_to_kafka</module>
-        <module>split_by_status_type</module>
+        <module>count_hashtags</module>
         <module>utils</module>
     </modules>
 

@@ -1,6 +1,6 @@
-# Split by status type
+# Count Hashtags
 ```bash
-./platform/flink-1.5.0/bin/flink run twitter_demo/split_by_status_type/target/split_by_status_type-0.1.jar \
+./platform/flink-1.5.0/bin/flink run twitter_demo/count_hashtags/target/count_hashtags-0.1.jar \
     --consumer.bootstrap.servers "<server1[,server2,...]>" \
     --consumer.group.id "<id>" \
     --consumer.topic.id "<id>" \
