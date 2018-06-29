@@ -44,7 +44,7 @@ object CountHashtags extends App {
 		new Properties() {
 			setProperty("bootstrap.servers", params.consumerBootstrapServers.get)
 			setProperty("group.id", params.consumerGroupId.get)
-		}).setStartFromEarliest()
+		})
 	
 	private def getProducer = new FlinkKafkaProducer011[String](params.producerBootstrapServers.get,
 		params.producerTopicId.get, new SimpleStringSchema) {
