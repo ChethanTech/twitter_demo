@@ -2,12 +2,15 @@ package com.weefin.twitterdemo
 
 import java.util.Properties
 
-import org.apache.flink.api.common.functions.RichFilterFunction
+import org.apache.flink.api.common.functions.{AggregateFunction, RichFilterFunction}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows
+import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 import org.apache.flink.util.Collector
 import org.slf4j.{Logger, LoggerFactory}
+import scalaz.Scalaz._
 import twitter4j.{Status, TwitterObjectFactory}
 
 import scala.util.Try
@@ -18,11 +21,24 @@ object CountHashtags extends App {
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
 	val source = getConsumer
 	val sink = getProducer
-	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption).flatMap(HashtagMap)
-		.map(_.toLowerCase).filter(new HashtagFilter(params)).addSink(sink)
+	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
+		.flatMap(FlattenHashtags).map(_.toLowerCase).filter(new HashtagFilter(params))
+		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(15), Time.seconds(3))).aggregate(AggregateHashtags)
+		.addSink(sink)
 	env.execute("Count hashtags")
 	
-	private def HashtagMap = (status: Option[Status], out: Collector[String]) => {
+	private object AggregateHashtags extends AggregateFunction[String, Map[String, Long], String] {
+		override def createAccumulator(): Map[String, Long] = Map.empty.withDefaultValue(0L)
+		
+		override def add(value: String, accumulator: Map[String, Long]): Map[String, Long] = accumulator +
+			(value -> (accumulator(value) + 1))
+		
+		override def getResult(accumulator: Map[String, Long]): String = accumulator.toString
+		
+		override def merge(a: Map[String, Long], b: Map[String, Long]): Map[String, Long] = a |+| b
+	}
+	
+	private def FlattenHashtags = (status: Option[Status], out: Collector[String]) => {
 		status.flatMap(status => Option(status.getHashtagEntities))
 			.foreach(_.foreach(hashtag => out.collect(hashtag.getText)))
 		status.flatMap(status => Option(status.getRetweetedStatus)).flatMap(status => Option(status
