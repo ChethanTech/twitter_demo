@@ -9,6 +9,8 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeW
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 import org.apache.flink.util.Collector
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
 import org.slf4j.{Logger, LoggerFactory}
 import scalaz.Scalaz._
 import twitter4j.{Status, TwitterObjectFactory}
@@ -24,10 +26,11 @@ object CountHashtags extends App {
 	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
 		.flatMap(FlattenHashtags).map(_.toLowerCase).filter(new HashtagFilter(params))
 		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(params.windowSize), Time.seconds(params.windowSlide)))
-		.aggregate(new AggregateHashtags(params)).addSink(sink)
+		.aggregate(new AggregateHashtags(params)).map(write(_)(DefaultFormats)).addSink(sink)
 	env.execute("Count hashtags")
 	
-	private class AggregateHashtags(params: Parameters) extends AggregateFunction[String, Map[String, Long], String] {
+	private class AggregateHashtags(params: Parameters)
+		extends AggregateFunction[String, Map[String, Long], Seq[(String, Long)]] {
 		private val displayOnly = params.displayOnly
 		private val minOccurrences = params.minOccurrences
 		
@@ -36,8 +39,8 @@ object CountHashtags extends App {
 		override def add(value: String, accumulator: Map[String, Long]): Map[String, Long] = accumulator +
 			(value -> (accumulator(value) + 1))
 		
-		override def getResult(accumulator: Map[String, Long]): String = accumulator.toSeq.sortBy(-_._2)
-			.take(displayOnly).filter(_._2 >= minOccurrences).toString
+		override def getResult(accumulator: Map[String, Long]): Seq[(String, Long)] = accumulator.toSeq.sortBy(-_._2)
+			.take(displayOnly).filter(_._2 >= minOccurrences)
 		
 		override def merge(a: Map[String, Long], b: Map[String, Long]): Map[String, Long] = a |+| b
 	}
