@@ -53,11 +53,11 @@ object CountHashtags extends App {
 	}
 	
 	private class HashtagFilter(params: Parameters) extends RichFilterFunction[String] {
-		private val whiteList = params.whiteList.map(_.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet)
-		private val blackList = params.blackList.map(_.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet)
+		private val whiteList = params.whiteList
+		private val blackList = params.blackList
 		
-		override def filter(value: String): Boolean = if (whiteList.exists(_.nonEmpty)) whiteList.get
-			.contains(value) else !blackList.exists(_.contains(value))
+		override def filter(value: String): Boolean = if (whiteList.nonEmpty) whiteList.contains(value) else !blackList
+			.contains(value)
 	}
 	
 	private def getConsumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema(),
