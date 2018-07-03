@@ -23,17 +23,21 @@ object CountHashtags extends App {
 	val sink = getProducer
 	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
 		.flatMap(FlattenHashtags).map(_.toLowerCase).filter(new HashtagFilter(params))
-		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(15), Time.seconds(3))).aggregate(AggregateHashtags)
-		.addSink(sink)
+		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(params.windowSize), Time.seconds(params.windowSlide)))
+		.aggregate(new AggregateHashtags(params)).addSink(sink)
 	env.execute("Count hashtags")
 	
-	private object AggregateHashtags extends AggregateFunction[String, Map[String, Long], String] {
+	private class AggregateHashtags(params: Parameters) extends AggregateFunction[String, Map[String, Long], String] {
+		private val displayOnly = params.displayOnly
+		private val minOccurrences = params.minOccurrences
+		
 		override def createAccumulator(): Map[String, Long] = Map.empty.withDefaultValue(0L)
 		
 		override def add(value: String, accumulator: Map[String, Long]): Map[String, Long] = accumulator +
 			(value -> (accumulator(value) + 1))
 		
-		override def getResult(accumulator: Map[String, Long]): String = accumulator.toString
+		override def getResult(accumulator: Map[String, Long]): String = accumulator.toSeq.sortBy(-_._2)
+			.take(displayOnly).filter(_._2 >= minOccurrences).toString
 		
 		override def merge(a: Map[String, Long], b: Map[String, Long]): Map[String, Long] = a |+| b
 	}
@@ -56,14 +60,15 @@ object CountHashtags extends App {
 			.contains(value) else !blackList.exists(_.contains(value))
 	}
 	
-	private def getConsumer = new FlinkKafkaConsumer011[String](params.consumerTopicId.get, new SimpleStringSchema(),
+	private def getConsumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema(),
 		new Properties() {
-			setProperty("bootstrap.servers", params.consumerBootstrapServers.get)
-			setProperty("group.id", params.consumerGroupId.get)
+			setProperty("bootstrap.servers", params.consumerBootstrapServers)
+			setProperty("group.id", params.consumerGroupId)
 		})
 	
-	private def getProducer = new FlinkKafkaProducer011[String](params.producerBootstrapServers.get,
-		params.producerTopicId.get, new SimpleStringSchema) {
+	private def getProducer = new FlinkKafkaProducer011[String](params.producerBootstrapServers, params
+		.producerTopicId,
+		new SimpleStringSchema) {
 		setWriteTimestampToKafka(true)
 	}
 }
