@@ -9,8 +9,10 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeW
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
 import org.apache.flink.util.Collector
-import org.json4s.DefaultFormats
+import org.json4s.JsonAST._
+import org.json4s.JsonDSL._
 import org.json4s.jackson.Serialization.write
+import org.json4s.{CustomSerializer, DefaultFormats, Formats}
 import org.slf4j.{Logger, LoggerFactory}
 import scalaz.Scalaz._
 import twitter4j.{Status, TwitterObjectFactory}
@@ -26,8 +28,17 @@ object CountHashtags extends App {
 	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
 		.flatMap(FlattenHashtags).map(_.toLowerCase).filter(new HashtagFilter(params))
 		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(params.windowSize), Time.seconds(params.windowSlide)))
-		.aggregate(new AggregateHashtags(params)).map(write(_)(DefaultFormats)).addSink(sink)
+		.aggregate(new AggregateHashtags(params)).map(write(_)(DefaultFormats + HashtagSerializer)).addSink(sink)
 	env.execute("Count hashtags")
+	
+	private object HashtagSerializer extends CustomSerializer[(String, Long)](_ => ( {
+		case jsonObj: JObject => implicit val formats: Formats = DefaultFormats
+			val text = (jsonObj \ "text").extract[String]
+			val count = (jsonObj \ "count").extract[Long]
+			(text, count)
+	}, {
+		case hashtag: (String, Long) => ("text" -> hashtag._1) ~ ("count" -> hashtag._2)
+	}))
 	
 	private class AggregateHashtags(params: Parameters)
 		extends AggregateFunction[String, Map[String, Long], Seq[(String, Long)]] {
