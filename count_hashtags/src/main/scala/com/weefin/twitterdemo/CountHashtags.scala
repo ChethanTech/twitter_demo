@@ -3,7 +3,7 @@ package com.weefin.twitterdemo
 import java.util.Properties
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.flink.api.common.functions.{AggregateFunction, RichFilterFunction}
+import org.apache.flink.api.common.functions.{AggregateFunction, FilterFunction, MapFunction, RichFilterFunction}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows
@@ -72,8 +72,8 @@ object CountHashtags extends App with LazyLogging {
 			.contains(value)
 	}
 	
-	private def consumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema(),
-		new Properties() {
+	private def consumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema,
+		new Properties {
 			setProperty("bootstrap.servers", params.consumerBootstrapServers)
 			setProperty("group.id", params.consumerGroupId)
 		})
