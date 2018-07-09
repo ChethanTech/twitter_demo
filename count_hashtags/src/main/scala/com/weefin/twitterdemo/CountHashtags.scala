@@ -23,12 +23,10 @@ object CountHashtags extends App with LazyLogging {
 	logger.info("Count hashtags job started")
 	val params = Parameters(args)
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
-	val source = getConsumer
-	val sink = getProducer
-	env.addSource(source).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
+	env.addSource(consumer).map(rawJSON => Try(TwitterObjectFactory.createStatus(rawJSON)).toOption)
 		.flatMap(FlattenHashtags).map(_.toLowerCase).filter(new HashtagFilter(params))
 		.windowAll(SlidingProcessingTimeWindows.of(Time.seconds(params.windowSize), Time.seconds(params.windowSlide)))
-		.aggregate(new AggregateHashtags(params)).map(write(_)(DefaultFormats + HashtagSerializer)).addSink(sink)
+		.aggregate(new AggregateHashtags(params)).map(write(_)(DefaultFormats + HashtagSerializer)).addSink(producer)
 	env.execute("Count hashtags")
 	
 	private object HashtagSerializer extends CustomSerializer[(String, Long)](_ => ( {
@@ -74,14 +72,13 @@ object CountHashtags extends App with LazyLogging {
 			.contains(value)
 	}
 	
-	private def getConsumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema(),
+	private def consumer = new FlinkKafkaConsumer011[String](params.consumerTopicId, new SimpleStringSchema(),
 		new Properties() {
 			setProperty("bootstrap.servers", params.consumerBootstrapServers)
 			setProperty("group.id", params.consumerGroupId)
 		})
 	
-	private def getProducer = new FlinkKafkaProducer011[String](params.producerBootstrapServers, params
-		.producerTopicId,
+	private def producer = new FlinkKafkaProducer011[String](params.producerBootstrapServers, params.producerTopicId,
 		new SimpleStringSchema) {
 		setWriteTimestampToKafka(true)
 	}
