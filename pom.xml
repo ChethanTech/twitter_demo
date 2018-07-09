@@ -13,7 +13,7 @@
 
     <modules>
         <module>twitter_stream_to_kafka</module>
-        <module>count_hashtags</module>
+        <module>processing_examples/count_hashtags</module>
         <module>utils</module>
     </modules>
 
