@@ -3,7 +3,7 @@ package com.weefin.twitterdemo
 import java.util.Properties
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.flink.api.common.functions.{AggregateFunction, FilterFunction, MapFunction, RichFilterFunction}
+import org.apache.flink.api.common.functions.{AggregateFunction, RichFilterFunction}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows
