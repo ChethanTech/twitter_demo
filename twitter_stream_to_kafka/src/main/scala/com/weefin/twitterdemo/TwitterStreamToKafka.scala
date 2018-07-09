@@ -1,5 +1,6 @@
 package com.weefin.twitterdemo
 
+import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.RawTwitterSource
 import org.apache.flink.api.common.functions.FilterFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
@@ -7,10 +8,9 @@ import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 import org.apache.flink.streaming.connectors.twitter.TwitterSource
-import org.slf4j.{Logger, LoggerFactory}
 
-object TwitterStreamToKafka extends App {
-	val logger: Logger = LoggerFactory.getLogger(getClass)
+object TwitterStreamToKafka extends App with LazyLogging {
+	logger.info("Twitter stream to kafka job started")
 	val defaultUri = "/1.1/statuses/sample.json"
 	val defaultHttpMethod = "GET"
 	val defaultBootstrapServers = "localhost:9092"
@@ -22,15 +22,12 @@ object TwitterStreamToKafka extends App {
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
 	val source = getTwitterSource
 	val sink = getProducer
-	logger.info("Job *Twitter stream to kafka* started")
 	env.addSource(source).filter(LogFilter).addSink(sink)
 	env.execute("Twitter stream to kafka")
 	
-	private object LogFilter extends FilterFunction[String] {
-		private val logger = LoggerFactory.getLogger(getClass)
-		
+	private object LogFilter extends FilterFunction[String] with LazyLogging {
 		override def filter(message: String): Boolean = {
-			logger.trace("Received status: {}…", message.substring(0, 100))
+			logger.debug(s"Received status: ${message.substring(0, 100)}…")
 			true
 		}
 	}

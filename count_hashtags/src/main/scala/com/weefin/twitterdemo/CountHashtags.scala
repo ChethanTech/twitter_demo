@@ -2,6 +2,7 @@ package com.weefin.twitterdemo
 
 import java.util.Properties
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.flink.api.common.functions.{AggregateFunction, RichFilterFunction}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
@@ -13,14 +14,13 @@ import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.Serialization.write
 import org.json4s.{CustomSerializer, DefaultFormats, Formats}
-import org.slf4j.{Logger, LoggerFactory}
 import scalaz.Scalaz._
 import twitter4j.{Status, TwitterObjectFactory}
 
 import scala.util.Try
 
-object CountHashtags extends App {
-	val logger: Logger = LoggerFactory.getLogger(getClass)
+object CountHashtags extends App with LazyLogging {
+	logger.info("Count hashtags job started")
 	val params = Parameters(args)
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
 	val source = getConsumer
