@@ -43,6 +43,11 @@
             <artifactId>twitter4s_${scala.binary.version}</artifactId>
             <version>5.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.weefin.twitterdemo</groupId>
+            <artifactId>utils_${scala.binary.version}</artifactId>
+            <version>0.1</version>
+        </dependency>
     </dependencies>
 
     <build>

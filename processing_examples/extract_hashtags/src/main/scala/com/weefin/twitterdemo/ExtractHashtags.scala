@@ -5,11 +5,11 @@ import java.util.Properties
 import com.danielasfregola.twitter4s.entities.{HashTag, Tweet}
 import com.danielasfregola.twitter4s.http.serializers.JsonSupport
 import com.typesafe.scalalogging.LazyLogging
+import com.weefin.twitterdemo.utils.twitter.{FlatMapExplodeSeq, FlatMapExtractHashtags}
 import org.apache.flink.api.common.functions.RichFilterFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer011, FlinkKafkaProducer011}
-import org.apache.flink.util.Collector
 import org.json4s.native.Serialization
 
 import scala.util.Try
@@ -18,23 +18,10 @@ object ExtractHashtags extends App with LazyLogging with JsonSupport {
 	logger.info("Count hashtags job started")
 	val params = Parameters(args)
 	val env = StreamExecutionEnvironment.getExecutionEnvironment
-	env.addSource(consumer).map(json => Try(Serialization.read[Tweet](json)).toOption).flatMap(ExtractHashtags)
-		.filter(new FilterHashtags(params)).map(Serialization.write(_)).addSink(producer)
+	env.addSource(consumer).map(json => Try(Serialization.read[Tweet](json)).toOption).flatMap(FlatMapExtractHashtags)
+		.flatMap(FlatMapExplodeSeq[HashTag]).filter(new FilterHashtags(params)).map(Serialization.write(_))
+		.addSink(producer)
 	env.execute("Extract hashtags")
-	
-	private def ExtractHashtags = (tweet: Option[Tweet], out: Collector[HashTag]) => {
-		def extractHashtags = (tweet: Option[Tweet]) => tweet
-			.flatMap(tweet => tweet.extended_entities.orElse(tweet.entities))
-			.foreach(_.hashtags.foreach(hashtag => out.collect(hashtag)))
-		
-		if (tweet.exists(_.is_quote_status)) {
-			extractHashtags(tweet.flatMap(_.quoted_status))
-		} else if (tweet.exists(_.retweeted)) {
-			extractHashtags(tweet.flatMap(_.retweeted_status))
-		} else {
-			extractHashtags(tweet)
-		}
-	}
 	
 	private class FilterHashtags(params: Parameters) extends RichFilterFunction[HashTag] {
 		private val whiteList = params.whiteList
