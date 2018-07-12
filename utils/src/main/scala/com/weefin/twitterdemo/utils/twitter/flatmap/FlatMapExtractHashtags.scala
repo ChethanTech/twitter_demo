@@ -1,4 +1,4 @@
-package com.weefin.twitterdemo.utils.twitter
+package com.weefin.twitterdemo.utils.twitter.flatmap
 
 import com.danielasfregola.twitter4s.entities.{HashTag, Tweet}
 import org.apache.flink.api.common.functions.RichFlatMapFunction

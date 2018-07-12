@@ -1,4 +1,4 @@
-package com.weefin.twitterdemo.utils.twitter
+package com.weefin.twitterdemo.utils.twitter.source
 
 import java.nio.charset.StandardCharsets
 import java.util.Properties

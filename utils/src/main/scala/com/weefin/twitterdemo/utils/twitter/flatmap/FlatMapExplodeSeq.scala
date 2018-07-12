@@ -1,4 +1,4 @@
-package com.weefin.twitterdemo.utils.twitter
+package com.weefin.twitterdemo.utils.twitter.flatmap
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.util.Collector

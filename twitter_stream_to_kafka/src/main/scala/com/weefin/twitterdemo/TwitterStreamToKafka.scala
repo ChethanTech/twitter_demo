@@ -1,7 +1,7 @@
 package com.weefin.twitterdemo
 
 import com.typesafe.scalalogging.LazyLogging
-import com.weefin.twitterdemo.utils.twitter.RawTwitterSource
+import com.weefin.twitterdemo.utils.twitter.source.RawTwitterSource
 import org.apache.flink.api.common.functions.FilterFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.scala._
