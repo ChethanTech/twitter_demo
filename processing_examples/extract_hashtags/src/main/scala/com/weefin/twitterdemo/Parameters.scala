@@ -7,10 +7,6 @@ import scala.util.Try
 object Parameters {
 	val defaultBootstrapServers = "localhost:9092"
 	val defaultList = ""
-	val defaultWindowSize = 60
-	val defaultWindowSlide = 5
-	val defaultDisplayOnly = 10
-	val defaultMinOccurrences = 1
 	
 	private def asSet = (list: String) => list.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet
 	
