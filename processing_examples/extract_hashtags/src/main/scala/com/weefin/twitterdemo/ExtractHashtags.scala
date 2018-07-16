@@ -2,19 +2,17 @@ package com.weefin.twitterdemo
 
 import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
-import com.weefin.twitterdemo.utils.twitter.StreamEnvironment
 import com.weefin.twitterdemo.utils.twitter.filter.KeywordFilter
 import com.weefin.twitterdemo.utils.twitter.flatmap.{DatedHashtag, FlatMapExplodeSeq, FlatMapExtractDatedHashtags}
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.KafkaJsonConsumer
 import org.apache.flink.streaming.api.scala._
 
-object ExtractHashtags extends App with LazyLogging with StreamEnvironment {
-	private val jobName = getClass.getSimpleName.split("\\$").last
-	val params = Parameters(args)
-	
+object ExtractHashtags extends App with LazyLogging {
+	private val jobName = this.getClass.getSimpleName.split("\\$").last
+	private val params = Parameters(args)
+	private val env = StreamExecutionEnvironment.getExecutionEnvironment
 	logger.info(s"$jobName job started")
-	
 	env.addSource(consumer).flatMap(FlatMapExtractDatedHashtags).flatMap(FlatMapExplodeSeq[DatedHashtag])
 		.filter(hashtagFilter).addSink(producer)
 	env.execute(jobName)
