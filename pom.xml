@@ -15,6 +15,7 @@
         <module>twitter_stream_to_kafka</module>
         <module>processing_examples/count_hashtags</module>
         <module>processing_examples/extract_hashtags</module>
+        <module>processing_examples/classify_tweets</module>
         <module>utils</module>
     </modules>
 
