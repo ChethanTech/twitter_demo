@@ -16,10 +16,10 @@ object ClassifyTweets extends App with LazyLogging {
 	private val params = Parameters(args)
 	private val env = StreamExecutionEnvironment.getExecutionEnvironment
 	logger.info(s"$jobName job started")
-	env.addSource(consumer).flatMap(FlatMapDefinedOption[Tweet]).map(SimpleStatus(_)).flatMap(map).addSink(producer)
+	env.addSource(consumer).flatMap(FlatMapDefinedOption[Tweet]).map(SimpleStatus(_)).flatMap(MapHashtagsClass).addSink(producer)
 	env.execute(jobName)
 	
-	private object map extends RichFlatMapFunction[SimpleStatus, (Seq[String], SimpleStatusClassification.Value)] {
+	private object MapHashtagsClass extends RichFlatMapFunction[SimpleStatus, (Seq[String], SimpleStatusClassification.Value)] {
 		override def flatMap(value: SimpleStatus,
 			out: Collector[(Seq[String], entities.SimpleStatusClassification.Value)]): Unit = {
 			val classification = SimpleStatusClassification(value).weights
