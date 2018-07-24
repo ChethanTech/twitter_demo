@@ -8,59 +8,90 @@ case class SimpleStatusClassification(status: SimpleStatus, weights: Map[SimpleS
 
 object SimpleStatusClassification extends Enumeration {
 	val AI, BigData, Blockchain, DataScience, Ecology, Finance, Other, Tech = Value
-	private val terms = Map("ai" -> AI,
-		"artificialintelligence" -> AI,
-		"ml" -> AI,
-		"machinelearning" -> AI,
-		"dl" -> AI,
-		"deeplearning" -> AI,
-		"virtualassistants" -> AI,
-		"bigdata" -> BigData,
-		"hadoop" -> BigData,
-		"spark" -> BigData,
-		"flink" -> BigData,
-		"blockchain" -> Blockchain,
-		"cryptocurrency" -> Blockchain,
-		"smartcontract" -> Blockchain,
-		"bitcoin" -> Blockchain,
-		"btc" -> Blockchain,
-		"ethereum" -> Blockchain,
-		"eth" -> Blockchain,
+	private val terms = Map(/* A */ "ai" -> AI,
 		"altcoin" -> Blockchain,
-		"crypto" -> Blockchain,
-		"ico" -> Blockchain,
-		"preico" -> Blockchain,
-		"tokens" -> Blockchain,
-		"cryptopos" -> Blockchain,
-		"datascience" -> DataScience,
-		"dataanalytics" -> DataScience,
 		"analytics" -> DataScience,
+		"artificialintelligence" -> AI,
+		
+		/* B */
+		"bank" -> Finance,
+		"banking" -> Finance,
+		"banks" -> Finance,
+		"bigdata" -> BigData,
+		"bitcoin" -> Blockchain,
+		"blockchain" -> Blockchain,
+		"btc" -> Blockchain,
+		
+		/* C */
+		"cloud" -> Tech,
+		"crypto" -> Blockchain,
+		"cryptocurrency" -> Blockchain,
+		"cryptopos" -> Blockchain,
+		
+		/* D */
+		"dataanalytics" -> DataScience,
+		"datascience" -> DataScience,
 		"dataviz" -> DataScience,
-		"visualthinking" -> DataScience,
+		"decentralized" -> Blockchain,
+		"deeplearning" -> AI,
+		"devops" -> Tech,
+		"digital" -> Tech,
+		"digitalization" -> Tech,
+		"digitization" -> Tech,
+		"dl" -> AI,
+		
+		/* E */
 		"ecology" -> Ecology,
+		"eth" -> Blockchain,
+		"ethereum" -> Blockchain,
+		
+		/* F */
+		"finance" -> Finance,
+		"finserv" -> Finance,
+		"fintech" -> Finance,
+		"flink" -> BigData,
+		
+		/* G */
 		"green" -> Ecology,
 		"greentech" -> Ecology,
-		"finance" -> Finance,
+		
+		/* H */
+		"hadoop" -> BigData,
+		
+		/* I */
+		"ico" -> Blockchain,
+		"iiot" -> Tech,
 		"invest" -> Finance,
+		"internetofthings" -> Tech,
+		"iot" -> Tech,
+		
+		/* M */
+		"machinelearning" -> AI,
+		"ml" -> AI,
+		
+		/* P */
+		"paas" -> Tech,
+		"preico" -> Blockchain,
 		"profits" -> Finance,
-		"fintech" -> Finance,
-		"finserv" -> Finance,
+		
+		/* R */
 		"regtech" -> Finance,
-		"bank" -> Finance,
-		"banks" -> Finance,
-		"banking" -> Finance,
+		"robotics" -> Tech,
+		"rockchain" -> Blockchain,
+		
+		/* S */
+		"saas" -> Tech,
+		"smartcontract" -> Blockchain,
+		"spark" -> BigData,
+		
+		/* T */
 		"tech" -> Tech,
 		"technology" -> Tech,
-		"digital" -> Tech,
-		"digitization" -> Tech,
-		"iot" -> Tech,
-		"internetofthings" -> Tech,
-		"iiot" -> Tech,
-		"cloud" -> Tech,
-		"saas" -> Tech,
-		"paas" -> Tech,
-		"devops" -> Tech,
-		"robotics" -> Tech).withDefaultValue(Other)
+		"tokens" -> Blockchain,
+		
+		/* V */
+		"virtualassistants" -> AI,
+		"visualthinking" -> DataScience).withDefaultValue(Other)
 	
 	def apply(status: SimpleStatus) = new SimpleStatusClassification(status)
 }
