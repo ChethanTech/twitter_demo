@@ -2,16 +2,14 @@ package com.weefin.twitterdemo
 
 import java.util.concurrent.TimeUnit
 
-import com.danielasfregola.twitter4s.TwitterRestClient
-import com.danielasfregola.twitter4s.entities.{AccessToken, ConsumerToken, Tweet}
+import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.SimpleStatus
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
-import org.apache.flink.runtime.concurrent.Executors
+import com.weefin.twitterdemo.utils.twitter.source.AsyncRestRequest
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.scala.async.{AsyncFunction, ResultFuture}
+import org.apache.flink.streaming.api.scala.async.ResultFuture
 
-import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 object TwitterUserTimelinesToKafka extends App with LazyLogging {
@@ -23,24 +21,18 @@ object TwitterUserTimelinesToKafka extends App with LazyLogging {
 	AsyncTimelinesStream(env.fromCollection(params.userIds)).map(SimpleStatus(_)).addSink(producer)
 	env.execute(jobName)
 	
-	private def AsyncTimelinesStream(userIdsStream: DataStream[Long]) = AsyncDataStream.unorderedWait(userIdsStream,
-		new AsyncTimelineRequest(params.consumerKey, params.consumerSecret, params.token, params.tokenSecret),
-		10,
-		TimeUnit.SECONDS,
-		20)
+	private def AsyncTimelinesStream(userIdStream: DataStream[Long]) = AsyncDataStream
+		.unorderedWait(userIdStream, AsyncTimelineRequest, 10, TimeUnit.SECONDS, 20)
 	
-	class AsyncTimelineRequest(consumerKey: String, consumerSecret: String, token: String, tokenSecret: String)
-		extends AsyncFunction[Long, Tweet] with LazyLogging {
-		
-		private lazy val restClient = TwitterRestClient(ConsumerToken(consumerKey, consumerSecret),
-			AccessToken(token, tokenSecret))
-		implicit lazy val executor: ExecutionContext = ExecutionContext.fromExecutor(Executors.directExecutor())
-		
-		override def asyncInvoke(value: Long, resultFuture: ResultFuture[Tweet]): Unit = {
-			restClient.userTimelineForUserId(value).map(_.data)
-				.onComplete { case Success(tweets) => logger.info(s"Received timeline for user id $value")
+	private def AsyncTimelineRequest = new AsyncRestRequest[Long, Tweet](params.consumerKey,
+		params.consumerSecret,
+		params.token,
+		params.tokenSecret) {
+		override def asyncInvoke(input: Long, resultFuture: ResultFuture[Tweet]): Unit = {
+			client.userTimelineForUserId(input).map(_.data)
+				.onComplete { case Success(tweets) => logger.info(s"Received timeline for user id $input")
 					resultFuture.complete(tweets)
-				case Failure(throwable) => logger.warn(s"Invalid response for user id $value: ${throwable.getMessage}")
+				case Failure(throwable) => logger.warn(s"Invalid response for user id $input: ${throwable.getMessage}")
 					resultFuture.complete(None)
 				}
 		}
