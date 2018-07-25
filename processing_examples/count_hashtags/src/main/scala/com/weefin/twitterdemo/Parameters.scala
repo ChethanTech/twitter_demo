@@ -4,15 +4,27 @@ import org.apache.flink.api.java.utils.ParameterTool
 
 import scala.util.Try
 
+case class Parameters(producerBootstrapServers: String,
+	consumerBootstrapServers: String,
+	consumerGroupId: String,
+	consumerTopicId: String,
+	producerTopicId: String,
+	whiteList: Set[String],
+	blackList: Set[String],
+	windowSize: Int,
+	windowSlide: Int,
+	displayOnly: Int,
+	minOccurrences: Int)
+
 object Parameters {
-	val defaultBootstrapServers = "localhost:9092"
-	val defaultList = ""
-	val defaultWindowSize = 60
-	val defaultWindowSlide = 5
-	val defaultDisplayOnly = 10
-	val defaultMinOccurrences = 1
+	private val defaultBootstrapServers = "localhost:9092"
+	private val defaultList = ""
+	private val defaultWindowSize = 60
+	private val defaultWindowSlide = 5
+	private val defaultDisplayOnly = 10
+	private val defaultMinOccurrences = 1
 	
-	private def asSet = (list: String) => list.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet
+	private def asStringSet = (list: String) => list.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet
 	
 	private def throwInvalidArgs = throw new IllegalArgumentException(
 		"""Invalid arguments. Usage: count_hashtags
@@ -29,24 +41,18 @@ object Parameters {
 			| --min-occurrences <count>
 			| """.stripMargin)
 	
-	def apply(args: Array[String]): Parameters = new Parameters(args)
-}
-
-class Parameters(args: Array[String]) {
-	private val params = ParameterTool.fromArgs(args)
-	val producerBootstrapServers: String = params.get("producer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerBootstrapServers: String = params.get("consumer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerGroupId: String = Try(params.getRequired("consumer.group.id")).getOrElse(Parameters.throwInvalidArgs)
-	val consumerTopicId: String = Try(params.getRequired("consumer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
-	val producerTopicId: String = Try(params.getRequired("producer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
-	val whiteList: Set[String] = Parameters.asSet(params.get("white-list", Parameters.defaultList))
-	val blackList: Set[String] = Parameters.asSet(params.get("black-list", Parameters.defaultList))
-	val windowSize: Int = Try(params.getInt("window-size", Parameters.defaultWindowSize))
-		.getOrElse(Parameters.throwInvalidArgs)
-	val windowSlide: Int = Try(params.getInt("window-slide", Parameters.defaultWindowSlide))
-		.getOrElse(Parameters.throwInvalidArgs)
-	val displayOnly: Int = Try(params.getInt("display-only", Parameters.defaultDisplayOnly))
-		.getOrElse(Parameters.throwInvalidArgs)
-	val minOccurrences: Int = Try(params.getInt("min-occurrences", Parameters.defaultMinOccurrences))
-		.getOrElse(Parameters.throwInvalidArgs)
+	def apply(args: Array[String]): Parameters = {
+		val params = ParameterTool.fromArgs(args)
+		Try(new Parameters(params.get("producer.bootstrap.servers", defaultBootstrapServers),
+			params.get("consumer.bootstrap.servers", defaultBootstrapServers),
+			params.getRequired("consumer.group.id"),
+			params.getRequired("consumer.topic.id"),
+			params.getRequired("producer.topic.id"),
+			asStringSet(params.get("white-list", defaultList)),
+			asStringSet(params.get("black-list", defaultList)),
+			params.getInt("window-size", defaultWindowSize),
+			params.getInt("window-slide", defaultWindowSlide),
+			params.getInt("display-only", defaultDisplayOnly),
+			params.getInt("min-occurrences", defaultMinOccurrences))).getOrElse(throwInvalidArgs)
+	}
 }

@@ -4,11 +4,17 @@ import org.apache.flink.api.java.utils.ParameterTool
 
 import scala.util.Try
 
+case class Parameters(producerBootstrapServers: String,
+	producerTopicId: String,
+	consumerBootstrapServers: String,
+	consumerGroupId: String,
+	consumerTopicId: String)
+
 object Parameters {
-	val defaultBootstrapServers = "localhost:9092"
+	private val defaultBootstrapServers = "localhost:9092"
 	
 	private def throwInvalidArgs = throw new IllegalArgumentException(
-		"""Invalid arguments. Usage: extract_hashtags
+		"""Invalid arguments. Usage: classify_tweets
 			| --consumer.bootstrap.servers <server1[,server2,...]>
 			| --consumer.group.id <id>
 			| --consumer.topic.id <id>
@@ -16,14 +22,12 @@ object Parameters {
 			| --producer.topic.id <id>
 			| """.stripMargin)
 	
-	def apply(args: Array[String]): Parameters = new Parameters(args)
-}
-
-class Parameters(args: Array[String]) {
-	private val params = ParameterTool.fromArgs(args)
-	val producerBootstrapServers: String = params.get("producer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerBootstrapServers: String = params.get("consumer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerGroupId: String = Try(params.getRequired("consumer.group.id")).getOrElse(Parameters.throwInvalidArgs)
-	val consumerTopicId: String = Try(params.getRequired("consumer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
-	val producerTopicId: String = Try(params.getRequired("producer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
+	def apply(args: Array[String]): Parameters = {
+		val params = ParameterTool.fromArgs(args)
+		Try(new Parameters(params.get("producer.bootstrap.servers", defaultBootstrapServers),
+			params.getRequired("producer.topic.id"),
+			params.get("consumer.bootstrap.servers", defaultBootstrapServers),
+			params.getRequired("consumer.group.id"),
+			params.getRequired("consumer.topic.id"))).getOrElse(throwInvalidArgs)
+	}
 }

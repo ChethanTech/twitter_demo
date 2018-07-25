@@ -4,11 +4,19 @@ import org.apache.flink.api.java.utils.ParameterTool
 
 import scala.util.Try
 
+case class Parameters(producerBootstrapServers: String,
+	consumerBootstrapServers: String,
+	consumerGroupId: String,
+	consumerTopicId: String,
+	producerTopicId: String,
+	whiteList: Set[String],
+	blackList: Set[String])
+
 object Parameters {
-	val defaultBootstrapServers = "localhost:9092"
-	val defaultList = ""
+	private val defaultBootstrapServers = "localhost:9092"
+	private val defaultList = ""
 	
-	private def asSet = (list: String) => list.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet
+	private def asStringSet = (list: String) => list.split(",").map(_.trim.toLowerCase).filter(_.nonEmpty).toSet
 	
 	private def throwInvalidArgs = throw new IllegalArgumentException(
 		"""Invalid arguments. Usage: extract_hashtags
@@ -21,16 +29,14 @@ object Parameters {
 			| --white-list <word1[,word2,...]>
 			| """.stripMargin)
 	
-	def apply(args: Array[String]): Parameters = new Parameters(args)
-}
-
-class Parameters(args: Array[String]) {
-	private val params = ParameterTool.fromArgs(args)
-	val producerBootstrapServers: String = params.get("producer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerBootstrapServers: String = params.get("consumer.bootstrap.servers", Parameters.defaultBootstrapServers)
-	val consumerGroupId: String = Try(params.getRequired("consumer.group.id")).getOrElse(Parameters.throwInvalidArgs)
-	val consumerTopicId: String = Try(params.getRequired("consumer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
-	val producerTopicId: String = Try(params.getRequired("producer.topic.id")).getOrElse(Parameters.throwInvalidArgs)
-	val whiteList: Set[String] = Parameters.asSet(params.get("white-list", Parameters.defaultList))
-	val blackList: Set[String] = Parameters.asSet(params.get("black-list", Parameters.defaultList))
+	def apply(args: Array[String]): Parameters = {
+		val params = ParameterTool.fromArgs(args)
+		Try(new Parameters(params.get("producer.bootstrap.servers", defaultBootstrapServers),
+			params.get("consumer.bootstrap.servers", defaultBootstrapServers),
+			params.getRequired("consumer.group.id"),
+			params.getRequired("consumer.topic.id"),
+			params.getRequired("producer.topic.id"),
+			asStringSet(params.get("white-list", defaultList)),
+			asStringSet(params.get("black-list", defaultList)))).getOrElse(throwInvalidArgs)
+	}
 }
