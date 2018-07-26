@@ -1,14 +1,10 @@
 package com.weefin.twitterdemo.utils.twitter.entities
 
-case class SimpleStatusClassification(status: SimpleStatus, weights: Map[SimpleStatusClassification.Value, Float]) {
-	def this(status: SimpleStatus) = this(status,
-		status.hashtags.map(word => SimpleStatusClassification.terms(word.toLowerCase)).groupBy(identity)
-			.mapValues(_.size.toFloat).mapValues(_ / status.hashtags.size).withDefaultValue(0))
-}
-
-object SimpleStatusClassification extends Enumeration {
+object WordClassification extends Enumeration {
 	val AI, BigData, Blockchain, DataScience, Ecology, Finance, Other, Tech = Value
 	private val terms = Map(/* A */ "ai" -> AI,
+		"airdrop" -> Blockchain,
+		"airdrops" -> Blockchain,
 		"altcoin" -> Blockchain,
 		"analytics" -> DataScience,
 		"artificialintelligence" -> AI,
@@ -24,6 +20,8 @@ object SimpleStatusClassification extends Enumeration {
 		
 		/* C */
 		"cloud" -> Tech,
+		"coin" -> Blockchain,
+		"coindrop" -> Blockchain,
 		"crypto" -> Blockchain,
 		"cryptocurrency" -> Blockchain,
 		"cryptopos" -> Blockchain,
@@ -35,6 +33,7 @@ object SimpleStatusClassification extends Enumeration {
 		"decentralized" -> Blockchain,
 		"deeplearning" -> AI,
 		"devops" -> Tech,
+		"dgd" -> Blockchain,
 		"digital" -> Tech,
 		"digitalization" -> Tech,
 		"digitization" -> Tech,
@@ -50,6 +49,7 @@ object SimpleStatusClassification extends Enumeration {
 		"finserv" -> Finance,
 		"fintech" -> Finance,
 		"flink" -> BigData,
+		"freeico" -> Blockchain,
 		
 		/* G */
 		"green" -> Ecology,
@@ -65,9 +65,16 @@ object SimpleStatusClassification extends Enumeration {
 		"internetofthings" -> Tech,
 		"iot" -> Tech,
 		
+		/* L */
+		"litecoin" -> Blockchain,
+		"ltc" -> Blockchain,
+		
 		/* M */
 		"machinelearning" -> AI,
 		"ml" -> AI,
+		
+		/* N */
+		"neo" -> Blockchain,
 		
 		/* P */
 		"paas" -> Tech,
@@ -76,6 +83,7 @@ object SimpleStatusClassification extends Enumeration {
 		
 		/* R */
 		"regtech" -> Finance,
+		"ripple" -> Blockchain,
 		"robotics" -> Tech,
 		"rockchain" -> Blockchain,
 		
@@ -87,11 +95,15 @@ object SimpleStatusClassification extends Enumeration {
 		/* T */
 		"tech" -> Tech,
 		"technology" -> Tech,
+		"token" -> Blockchain,
 		"tokens" -> Blockchain,
 		
 		/* V */
 		"virtualassistants" -> AI,
-		"visualthinking" -> DataScience).withDefaultValue(Other)
+		"visualthinking" -> DataScience,
+		
+		/* X */
+		"xrp" -> Blockchain).withDefaultValue(Other)
 	
-	def apply(status: SimpleStatus) = new SimpleStatusClassification(status)
+	def get(word: String) = terms(word)
 }
