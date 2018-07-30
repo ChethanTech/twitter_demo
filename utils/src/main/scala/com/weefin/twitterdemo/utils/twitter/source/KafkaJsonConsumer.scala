@@ -12,16 +12,21 @@ import scala.reflect.Manifest
 import scala.util.Try
 
 object KafkaJsonConsumer extends JsonSupport {
-	def apply[T](bootstrapServers: String, topicId: String, groupId: String)
-	            (implicit mf: Manifest[T]) = new FlinkKafkaConsumer011[Option[T]](topicId,
-		JsonDeserializationSchema[T],
-		new Properties {
-			setProperty("bootstrap.servers", bootstrapServers)
-			setProperty("group.id", groupId)
-		})
-	
-	private def JsonDeserializationSchema[T](implicit mf: Manifest[T]) = new AbstractDeserializationSchema[Option[T]] {
-		override def deserialize(message: Array[Byte]) = Try(
-			Serialization.read[T](new String(message, StandardCharsets.UTF_8))).toOption
-	}
+  def apply[T](bootstrapServers: String, topicId: String, groupId: String)(
+    implicit mf: Manifest[T]
+  ) =
+    new FlinkKafkaConsumer011[Option[T]](
+      topicId,
+      JsonDeserializationSchema[T],
+      new Properties {
+        setProperty("bootstrap.servers", bootstrapServers)
+        setProperty("group.id", groupId)
+      }
+    )
+
+  private def JsonDeserializationSchema[T](implicit mf: Manifest[T]) =
+    new AbstractDeserializationSchema[Option[T]] {
+      override def deserialize(message: Array[Byte]) =
+        Try(Serialization.read[T](new String(message, StandardCharsets.UTF_8))).toOption
+    }
 }

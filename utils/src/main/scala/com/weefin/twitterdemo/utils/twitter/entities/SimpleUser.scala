@@ -11,16 +11,19 @@ case class SimpleUser(created_at: Date,
                       name: String,
                       screen_name: String,
                       statuses_count: Int) {
-	
-	def this(user: User) = this(created_at = user.created_at,
-	                            description = user.description,
-	                            followers_count = user.followers_count,
-	                            id = user.id,
-	                            name = user.name,
-	                            screen_name = user.screen_name,
-	                            statuses_count = user.statuses_count)
+
+  def this(user: User) =
+    this(
+      created_at = user.created_at,
+      description = user.description,
+      followers_count = user.followers_count,
+      id = user.id,
+      name = user.name,
+      screen_name = user.screen_name,
+      statuses_count = user.statuses_count
+    )
 }
 
 object SimpleUser {
-	def apply(user: User) = new SimpleUser(user)
+  def apply(user: User) = new SimpleUser(user)
 }

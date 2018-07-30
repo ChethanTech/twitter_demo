@@ -23,23 +23,33 @@ case class DatedHashtag(created_at: Date, hashtag: HashTag)
 //	}
 //}
 //}
-object FlatMapExtractDatedHashtags extends RichFlatMapFunction[Option[Tweet], Seq[DatedHashtag]] {
-	
-	override def flatMap(tweet: Option[Tweet], out: Collector[Seq[DatedHashtag]]): Unit = {
-		
-		def extractDatedHashtags(tweet: Option[Tweet]): Option[Seq[DatedHashtag]] = {
-			var datedHashtags = Seq.empty[DatedHashtag]
-			tweet.flatMap(tweet => tweet.extended_entities.orElse(tweet.entities))
-				.foreach(_.hashtags.foreach(datedHashtags :+= DatedHashtag(tweet.get.created_at, _)))
-			if (datedHashtags.nonEmpty) Some(datedHashtags) else None
-		}
-		
-		if (tweet.exists(_.is_quote_status)) {
-			extractDatedHashtags(tweet.flatMap(_.quoted_status)).foreach(out.collect(_))
-		} else if (tweet.exists(_.retweeted)) {
-			extractDatedHashtags(tweet.flatMap(_.retweeted_status)).foreach(out.collect(_))
-		} else {
-			extractDatedHashtags(tweet).foreach(out.collect(_))
-		}
-	}
+object FlatMapExtractDatedHashtags
+    extends RichFlatMapFunction[Option[Tweet], Seq[DatedHashtag]] {
+
+  override def flatMap(tweet: Option[Tweet],
+                       out: Collector[Seq[DatedHashtag]]): Unit = {
+
+    def extractDatedHashtags(
+      tweet: Option[Tweet]
+    ): Option[Seq[DatedHashtag]] = {
+      var datedHashtags = Seq.empty[DatedHashtag]
+      tweet
+        .flatMap(tweet => tweet.extended_entities.orElse(tweet.entities))
+        .foreach(
+          _.hashtags
+            .foreach(datedHashtags :+= DatedHashtag(tweet.get.created_at, _))
+        )
+      if (datedHashtags.nonEmpty) Some(datedHashtags) else None
+    }
+
+    if (tweet.exists(_.is_quote_status)) {
+      extractDatedHashtags(tweet.flatMap(_.quoted_status))
+        .foreach(out.collect(_))
+    } else if (tweet.exists(_.retweeted)) {
+      extractDatedHashtags(tweet.flatMap(_.retweeted_status))
+        .foreach(out.collect(_))
+    } else {
+      extractDatedHashtags(tweet).foreach(out.collect(_))
+    }
+  }
 }

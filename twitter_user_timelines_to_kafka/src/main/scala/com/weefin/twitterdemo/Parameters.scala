@@ -6,20 +6,38 @@ import org.apache.flink.streaming.connectors.twitter.TwitterSource
 import scala.util.Try
 
 case class Parameters(userIds: Seq[Long],
-	consumerKey: String,
-	consumerSecret: String,
-	token: String,
-	tokenSecret: String,
-	bootstrapServers: String,
-	topicId: String)
+                      consumerKey: String,
+                      consumerSecret: String,
+                      token: String,
+                      tokenSecret: String,
+                      bootstrapServers: String,
+                      topicId: String)
 
 object Parameters {
-	private val defaultBootstrapServers = "localhost:9092"
-	
-	private def asLongSet = (list: String) => list.split(",").map(_.trim).filter(_.nonEmpty).map(_.toLong).distinct
-	
-	private def throwInvalidArgs = throw new IllegalArgumentException(
-		"""Invalid arguments. Usage: TwitterUserTimelinesToKafka
+  private val defaultBootstrapServers = "localhost:9092"
+
+  def apply(args: Array[String]): Parameters = {
+    val params = ParameterTool.fromArgs(args)
+    Try(
+      new Parameters(
+        asLongSet(params.getRequired("user-ids")),
+        params.getRequired(TwitterSource.CONSUMER_KEY),
+        params.getRequired(TwitterSource.CONSUMER_SECRET),
+        params.getRequired(TwitterSource.TOKEN),
+        params.getRequired(TwitterSource.TOKEN_SECRET),
+        params.get("bootstrap.servers", defaultBootstrapServers),
+        params.getRequired("topic.id")
+      )
+    ).getOrElse(throwInvalidArgs)
+  }
+
+  private def asLongSet =
+    (list: String) =>
+      list.split(",").map(_.trim).filter(_.nonEmpty).map(_.toLong).distinct
+
+  private def throwInvalidArgs =
+    throw new IllegalArgumentException(
+      """Invalid arguments. Usage: TwitterUserTimelinesToKafka
 			| --user-ids <id1[,id2,...]>
 			| --twitter-source.consumerKey <key>
 			| --twitter-source.consumerSecret <secret>
@@ -27,16 +45,6 @@ object Parameters {
 			| --twitter-source.tokenSecret <tokenSecret>
 			| --bootstrap.servers <server1[,server2,...]>
 			| --topic.id <id>
-			| """.stripMargin)
-	
-	def apply(args: Array[String]): Parameters = {
-		val params = ParameterTool.fromArgs(args)
-		Try(new Parameters(asLongSet(params.getRequired("user-ids")),
-			params.getRequired(TwitterSource.CONSUMER_KEY),
-			params.getRequired(TwitterSource.CONSUMER_SECRET),
-			params.getRequired(TwitterSource.TOKEN),
-			params.getRequired(TwitterSource.TOKEN_SECRET),
-			params.get("bootstrap.servers", defaultBootstrapServers),
-			params.getRequired("topic.id"))).getOrElse(throwInvalidArgs)
-	}
+			| """.stripMargin
+    )
 }
