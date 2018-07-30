@@ -2,8 +2,10 @@ package com.weefin.twitterdemo
 
 import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
-import com.weefin.twitterdemo.utils.twitter.entities.{ClassifiedEntity, SimpleStatus}
-import com.weefin.twitterdemo.utils.twitter.flatmap.FlatMapDefinedOption
+import com.weefin.twitterdemo.utils.twitter.entities.{
+  ClassifiedEntity,
+  SimpleStatus
+}
 import com.weefin.twitterdemo.utils.twitter.map.MapClassifyByHashtags
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.KafkaJsonConsumer
@@ -16,7 +18,7 @@ object ClassifyTweets extends App with LazyLogging {
   logger.info(s"$jobName job started")
   env
     .addSource(consumer)
-    .flatMap(FlatMapDefinedOption[Option[Tweet], Tweet])
+    .flatMap(identity(_))
     .map(SimpleStatus(_))
     .map(MapClassifyByHashtags)
     .map(new ClassifiedSimpleStatus(_))
