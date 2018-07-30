@@ -53,7 +53,7 @@ object TwitterUserTimelinesToKafka extends App with LazyLogging {
               logger.warn(
                 s"Invalid response for user id $input: ${throwable.getMessage}"
               )
-              resultFuture.complete(None)
+              resultFuture.complete(Iterable.empty)
           }
       }
     }
