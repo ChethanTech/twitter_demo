@@ -22,7 +22,7 @@ object ExtractUsers extends App with LazyLogging {
     .keyBy(_.id)
     .process(FilterDuplicates)
     .addSink(producer)
-  env.execute
+  env.execute(jobName)
 
   private def FilterDuplicates =
     KeyedProcessThrottle[Long, SimpleUser, SimpleUser](Time.minutes(10), x => x)
