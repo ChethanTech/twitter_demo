@@ -12,12 +12,12 @@ object KafkaJsonProducer extends JsonSupport {
     new FlinkKafkaProducer011[T](
       bootstrapServers,
       topicId,
-      JsonDeserializationSchema[T]
+      JsonSerializationSchema[T]
     ) {
       setWriteTimestampToKafka(true)
     }
 
-  private def JsonDeserializationSchema[T <: AnyRef] =
+  private def JsonSerializationSchema[T <: AnyRef] =
     new SerializationSchema[T] {
       override def serialize(element: T) =
         Serialization.write(element).getBytes(StandardCharsets.UTF_8)
