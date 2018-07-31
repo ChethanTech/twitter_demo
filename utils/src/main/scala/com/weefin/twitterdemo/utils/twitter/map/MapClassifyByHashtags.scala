@@ -9,7 +9,7 @@ object MapClassifyByHashtags
     ClassifiedEntity(
       status,
       status.hashtags
-        .map(word => WordClassification.get(word.toLowerCase))
+        .map(WordClassification(_))
         .groupBy(identity)
         .mapValues(_.size.toFloat)
         .mapValues(_ / status.hashtags.size)

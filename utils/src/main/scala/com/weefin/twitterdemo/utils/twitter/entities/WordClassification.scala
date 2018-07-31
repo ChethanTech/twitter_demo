@@ -91,5 +91,5 @@ object WordClassification extends Enumeration {
     "xrp" -> Blockchain
   ).withDefaultValue(Other)
 
-  def get(word: String) = terms(word)
+  def apply(word: String) = terms(word.toLowerCase)
 }
