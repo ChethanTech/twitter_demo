@@ -44,7 +44,6 @@ object ExtractUsers extends App with LazyLogging {
       extends RichFlatMapFunction[Option[Tweet], SimpleUser] {
     override def flatMap(value: Option[Tweet],
                          out: Collector[SimpleUser]): Unit =
-      value
-        .foreach(SimpleStatus(_).user.foreach(out.collect(_)))
+      value.map(SimpleStatus(_)).flatMap(_.user).foreach(out.collect(_))
   }
 }
