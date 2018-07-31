@@ -8,5 +8,5 @@ abstract class EmptyFilter[T] extends FilterFunction[T] {
     true
   }
 
-  def action(value: T): Any
+  def action(value: T): Unit
 }
