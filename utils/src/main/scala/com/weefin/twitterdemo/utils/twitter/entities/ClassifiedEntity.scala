@@ -15,9 +15,9 @@ case class ClassifiedEntity[T](
   ).toOption
 }
 
-case object ClassifiedEntity {
+object ClassifiedEntity {
   def apply[T](entity: T,
-               classification: Map[WordClassification.Value, Float] = Map.empty,
-               confidence: Float) =
+               classification: Map[WordClassification.Value, Float],
+               confidence: Float): ClassifiedEntity[T] =
     ClassifiedEntity(entity, classification, Some(confidence))
 }

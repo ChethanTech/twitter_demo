@@ -48,7 +48,8 @@ object ClassifyUsers extends App with LazyLogging {
       ClassifiedEntity(
         t._1,
         t._2
-          .reduce(_.mapValues(List(_)) |+| _.mapValues(List(_)))
+          .map(_.mapValues(List(_)))
+          .reduce(_ |+| _)
           .mapValues(scores => scores.sum / scores.length),
         Math.min(48, t._2.length - 1) * 0.8F / 49 + 0.2F
       )
