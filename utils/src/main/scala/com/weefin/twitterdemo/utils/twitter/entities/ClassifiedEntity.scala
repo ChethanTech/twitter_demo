@@ -4,7 +4,8 @@ import scala.util.Try
 
 case class ClassifiedEntity[T](
   entity: T,
-  classification: Map[WordClassification.Value, Float] = Map.empty
+  classification: Map[WordClassification.Value, Float],
+  confidence: Option[Float] = None
 ) {
   lazy val mainClass: Option[WordClassification.Value] = Try(
     classification
@@ -12,4 +13,11 @@ case class ClassifiedEntity[T](
       .maxBy(_._2)
       ._1
   ).toOption
+}
+
+case object ClassifiedEntity {
+  def apply[T](entity: T,
+               classification: Map[WordClassification.Value, Float] = Map.empty,
+               confidence: Float) =
+    ClassifiedEntity(entity, classification, Some(confidence))
 }
