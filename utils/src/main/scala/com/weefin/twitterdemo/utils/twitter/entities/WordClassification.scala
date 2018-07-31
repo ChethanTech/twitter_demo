@@ -4,7 +4,8 @@ object WordClassification extends Enumeration {
   val AI, BigData, Blockchain, DataScience, Ecology, Finance, Other, Tech =
     Value
   private val terms = Map(
-    /* A */ "ai" -> AI,
+    /* A */
+    "ai" -> AI,
     "airdrop" -> Blockchain,
     "airdrops" -> Blockchain,
     "altcoin" -> Blockchain,
@@ -92,4 +93,12 @@ object WordClassification extends Enumeration {
   ).withDefaultValue(Other)
 
   def apply(word: String) = terms(word.toLowerCase)
+
+  def apply(words: Seq[String]): Map[Value, Float] =
+    words
+      .map(this(_))
+      .groupBy(identity)
+      .mapValues(_.size.toFloat)
+      .mapValues(_ / words.size)
+      .withDefaultValue(0)
 }
