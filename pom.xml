@@ -16,6 +16,7 @@
         <module>twitter_user_timelines_to_kafka</module>
         <module>processing_examples/count_hashtags</module>
         <module>processing_examples/extract_hashtags</module>
+        <module>processing_examples/extract_users</module>
         <module>processing_examples/classify_tweets</module>
         <module>processing_examples/classify_users</module>
         <module>utils</module>
