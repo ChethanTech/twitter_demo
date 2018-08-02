@@ -25,7 +25,7 @@ object ExtractUsers extends App with LazyLogging {
   env.execute(jobName)
 
   private def FilterDuplicates =
-    KeyedProcessThrottle[Long, SimpleUser, SimpleUser](Time.minutes(10), x => x)
+    KeyedProcessThrottle[Long, SimpleUser, SimpleUser](Time.minutes(10).toMilliseconds, x => x)
 
   private def consumer =
     KafkaJsonConsumer[Tweet](
