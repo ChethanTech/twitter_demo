@@ -31,7 +31,7 @@ object ClassifyUsers extends App with LazyLogging {
     env.addSource(consumer).flatMap(identity(_))
 
   private val timelines: DataStream[(SimpleUser, Seq[Tweet])] = AsyncDataStream
-    .unorderedWait(users, AsyncTimelineRequest, 5, TimeUnit.SECONDS, 50)
+    .unorderedWait(users, AsyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
     .filter(_._2.nonEmpty)
 
   private val simpleTimelines: DataStream[(SimpleUser, Seq[SimpleStatus])] =
@@ -40,7 +40,7 @@ object ClassifyUsers extends App with LazyLogging {
   private val classifiedTimelines
     : DataStream[(SimpleUser, Seq[Map[WordClassification.Value, Float]])] =
     simpleTimelines.map { t =>
-      (t._1, t._2.map(s => WordClassification(s.hashtags)))
+      (t._1, t._2.map(s => WordClassification(s.hashtags)).filter(_.nonEmpty))
     }
 
   private val classifiedUsers: DataStream[ClassifiedEntity[SimpleUser]] =
@@ -49,13 +49,16 @@ object ClassifyUsers extends App with LazyLogging {
         t._1,
         t._2
           .map(_.mapValues(List(_)))
-          .reduce(_ |+| _)
-          .mapValues(scores => scores.sum / scores.length),
-        Math.min(48, t._2.length - 1) * 0.8F / 49 + 0.2F
+          .reduceOption(_ |+| _)
+          .getOrElse(Map.empty)
+          .mapValues(scores => scores.sum / t._2.length),
+        Math.min(49, t._2.length - 1) * 0.8F / 49 + 0.2F
       )
     }
 
-  classifiedUsers.addSink(producer)
+  classifiedUsers
+    .map(c => (c.entity, c.classification.toString, c.confidence))
+    .addSink(producer)
   env.execute(jobName)
 
   private def AsyncTimelineRequest =
@@ -65,26 +68,33 @@ object ClassifyUsers extends App with LazyLogging {
       params.token,
       params.tokenSecret
     ) {
-      override def asyncInvoke(
+      override def timeout(
         user: SimpleUser,
         resultFuture: ResultFuture[(SimpleUser, Seq[Tweet])]
       ): Unit = {
+        logger.warn(s"Get timeline for user id ${user.id}: query timed out")
+        resultFuture.complete(Iterable.empty)
+      }
+
+      override def asyncInvoke(
+        user: SimpleUser,
+        resultFuture: ResultFuture[(SimpleUser, Seq[Tweet])]
+      ): Unit =
         client
           .userTimelineForUserId(user.id)
           .map(_.data)
           .onComplete {
             case Success(tweets) =>
               logger.info(
-                s"Received the ${tweets.length} most recent Tweets for user id $user"
+                s"Get timeline for user id ${user.id}: received the ${tweets.length} most recent Tweets"
               )
               resultFuture.complete(Iterable((user, tweets)))
             case Failure(throwable) =>
               logger.warn(
-                s"Invalid response for user id $user: ${throwable.getMessage}"
+                s"Get timeline for user id ${user.id}: received error '${throwable.getMessage}'"
               )
               resultFuture.complete(Iterable.empty)
           }
-      }
     }
 
   private def consumer =
@@ -95,7 +105,7 @@ object ClassifyUsers extends App with LazyLogging {
     )
 
   private def producer =
-    KafkaJsonProducer[ClassifiedEntity[SimpleUser]](
+    KafkaJsonProducer[(SimpleUser, String, Option[Float])](
       params.producerBootstrapServers,
       params.producerTopicId
     )
