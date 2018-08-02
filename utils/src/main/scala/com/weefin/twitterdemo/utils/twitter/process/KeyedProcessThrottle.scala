@@ -7,7 +7,7 @@ import org.apache.flink.util.Collector
 class KeyedProcessThrottle[K, I, O](throttle: Long, f: I => O)
     extends KeyedProcessFunction[K, I, O] {
   private lazy val state: ValueState[Boolean] = getRuntimeContext
-    .getState(new ValueStateDescriptor[Boolean]("throttle", classOf[Boolean]))
+    .getState(new ValueStateDescriptor[Boolean]("throttling", classOf[Boolean]))
 
   override def onTimer(timestamp: Long,
                        ctx: KeyedProcessFunction[K, I, O]#OnTimerContext,
