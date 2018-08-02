@@ -7,16 +7,19 @@ import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011
 
 object TwitterStreamToKafka extends App with LazyLogging {
-  logger.info("Twitter stream to kafka job started")
-  val params = Parameters(args)
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  private val jobName = this.getClass.getSimpleName.split("\\$").last
+  private val params = Parameters(args)
+  private val env = StreamExecutionEnvironment.getExecutionEnvironment
+  logger.info(s"$jobName job started")
+
   env
     .addSource(twitterSource)
     .filter(
       t => logger.trace(s"Received status: ${t.substring(0, 75)}…").->(true)._2
     )
     .addSink(producer)
-  env.execute("Twitter stream to kafka")
+
+  env.execute(jobName)
 
   private def twitterSource =
     RawTwitterSource(
