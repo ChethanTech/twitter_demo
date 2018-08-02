@@ -40,9 +40,8 @@
 	        <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>${maven.shade.version}</version>
                 <executions>
-                    <!-- Run shade goal on package phase -->
 	                <execution>
                         <phase>package</phase>
                         <goals>
@@ -51,8 +50,6 @@
                         <configuration>
                             <filters>
                                 <filter>
-                                    <!-- Do not copy the signatures in the META-INF folder.
-                                    Otherwise, this might cause SecurityExceptions when using the JAR. -->
 	                                <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/*.SF</exclude>
@@ -62,7 +59,6 @@
                                 </filter>
                             </filters>
                             <transformers>
-                                <!-- Append reference.conf files, otherwise the FLink one overwrite the twitter4s one -->
 	                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>reference.conf</resource>
                                 </transformer>
