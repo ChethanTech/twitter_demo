@@ -8,7 +8,8 @@ case class Parameters(producerBootstrapServers: String,
                       consumerBootstrapServers: String,
                       consumerGroupId: String,
                       consumerTopicId: String,
-                      producerTopicId: String)
+                      producerTopicId: String,
+                      throttlingDuration: Long)
 
 object Parameters {
   private val defaultBootstrapServers = "localhost:9092"
@@ -21,7 +22,8 @@ object Parameters {
         params.get("consumer.bootstrap.servers", defaultBootstrapServers),
         params.getRequired("consumer.group.id"),
         params.getRequired("consumer.topic.id"),
-        params.getRequired("producer.topic.id")
+        params.getRequired("producer.topic.id"),
+        params.getLong("throttling-duration")
       )
     ).getOrElse(throwInvalidArgs)
   }
@@ -34,6 +36,7 @@ object Parameters {
 			| --consumer.topic.id <id>
 			| --producer.bootstrap.servers <server1[,server2,...]>
 			| --producer.topic.id <id>
+			| --throttling-duration <minutes>
 			| """.stripMargin
     )
 }
