@@ -5,10 +5,9 @@ import java.util.concurrent.TimeUnit
 import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.{
-  ClassifiedEntity,
+  Classification,
   SimpleStatus,
-  SimpleUser,
-  WordClassification
+  SimpleUser
 }
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.{
@@ -17,7 +16,6 @@ import com.weefin.twitterdemo.utils.twitter.source.{
 }
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.async.ResultFuture
-import scalaz.Scalaz._
 
 import scala.util.{Failure, Success}
 
@@ -37,29 +35,42 @@ object ClassifyUsers extends App with LazyLogging {
   private val simpleTimelines: DataStream[(SimpleUser, Seq[SimpleStatus])] =
     timelines.map(t => (t._1, t._2.map(SimpleStatus(_))))
 
-  private val classifiedTimelines
-    : DataStream[(SimpleUser, Seq[Map[WordClassification.Value, Float]])] =
+  private val classifiedUsers1
+    : DataStream[(SimpleUser, Seq[Seq[Classification]])] =
     simpleTimelines.map { t =>
-      (t._1, t._2.map(s => WordClassification(s.hashtags)).filter(_.nonEmpty))
-    }
-
-  private val classifiedUsers: DataStream[ClassifiedEntity[SimpleUser]] =
-    classifiedTimelines.map { t =>
-      ClassifiedEntity(
+      (
         t._1,
         t._2
-          .map(_.mapValues(List(_)))
-          .reduceOption(_ |+| _)
-          .getOrElse(Map.empty)
-          .mapValues(scores => scores.sum / t._2.length),
-        Math.min(49, t._2.length - 1) * 0.8F / 49 + 0.2F
+          .map(s => Classification.fromWords(s.hashtags))
+          .filterNot(_.isEmpty)
       )
     }
 
-  classifiedUsers
-    .map(c => (c.entity, c.classification.toString, c.confidence))
+  private val classifiedUsers2
+    : DataStream[(SimpleUser, Seq[Classification], Float)] =
+    classifiedUsers1.map { t =>
+      (
+        t._1,
+        t._2
+          .reduceOption(_ ++ _)
+          .getOrElse(Seq.empty)
+          .groupBy(_.label)
+          .mapValues(_.flatMap(_.weight))
+          .mapValues(_.sum / t._2.length)
+          .map(c => Classification(c._1, Some(c._2)))
+          .toSeq,
+        Math.min(24, t._2.length - 1) * 0.9F / 24 + 0.1F
+      )
+    }
+
+  classifiedUsers2
+    .map(ClassifiedSimpleUser.tupled(_))
     .addSink(producer)
   env.execute(jobName)
+
+  private case class ClassifiedSimpleUser(user: SimpleUser,
+                                          classification: Seq[Classification],
+                                          confidence: Float)
 
   private def AsyncTimelineRequest =
     new AsyncRestRequest[SimpleUser, (SimpleUser, Seq[Tweet])](
@@ -105,7 +116,7 @@ object ClassifyUsers extends App with LazyLogging {
     )
 
   private def producer =
-    KafkaJsonProducer[(SimpleUser, String, Option[Float])](
+    KafkaJsonProducer[ClassifiedSimpleUser](
       params.producerBootstrapServers,
       params.producerTopicId
     )

@@ -3,10 +3,9 @@ package com.weefin.twitterdemo
 import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.{
-  ClassifiedEntity,
+  Classification,
   SimpleStatus
 }
-import com.weefin.twitterdemo.utils.twitter.map.MapClassifyByHashtags
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.KafkaJsonConsumer
 import org.apache.flink.streaming.api.scala._
@@ -20,8 +19,15 @@ object ClassifyTweets extends App with LazyLogging {
     .addSource(consumer)
     .flatMap(identity(_))
     .map(SimpleStatus(_))
-    .map(MapClassifyByHashtags)
-    .map(new ClassifiedSimpleStatus(_))
+    .map { s =>
+      ClassifiedSimpleStatus(
+        s,
+        Classification
+          .getMainDefinedClassification(Classification.fromWords(s.hashtags))
+          .map(_.label.toString)
+          .getOrElse("None")
+      )
+    }
     .addSink(producer)
   env.execute(jobName)
 
@@ -39,12 +45,6 @@ object ClassifyTweets extends App with LazyLogging {
     )
 
   private case class ClassifiedSimpleStatus(status: SimpleStatus,
-                                            mainClass: String) {
-    def this(classifiedEntity: ClassifiedEntity[SimpleStatus]) =
-      this(
-        classifiedEntity.entity,
-        classifiedEntity.mainClass.getOrElse("None").toString
-      )
-  }
+                                            mainClass: String)
 
 }
