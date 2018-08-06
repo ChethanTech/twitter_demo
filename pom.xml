@@ -19,6 +19,7 @@
         <module>processing_examples/extract_users</module>
         <module>processing_examples/classify_tweets</module>
         <module>processing_examples/classify_users</module>
+        <module>processing_examples/simplify_statuses</module>
         <module>utils</module>
     </modules>
 
