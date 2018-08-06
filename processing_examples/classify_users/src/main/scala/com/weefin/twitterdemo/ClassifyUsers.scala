@@ -59,7 +59,7 @@ object ClassifyUsers extends App with LazyLogging {
           .mapValues(_.sum / t._2.length)
           .map(c => Classification(c._1, Some(c._2)))
           .toSeq,
-        Math.min(24, t._2.length - 1) * 0.9F / 24 + 0.1F
+        Math.min(1F, t._2.length / 25F)
       )
     }
 
