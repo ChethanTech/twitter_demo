@@ -18,6 +18,6 @@ abstract class AsyncTwitterRequest[T, U](consumerKey: String,
     AccessToken(token, tokenSecret)
   )
   implicit lazy val executor: ExecutionContext =
-    ExecutionContext.fromExecutor(Executors.directExecutor())
+    ExecutionContext.fromExecutor(Executors.directExecutor)
 
 }
