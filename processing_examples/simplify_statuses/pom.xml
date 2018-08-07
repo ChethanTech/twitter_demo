@@ -24,6 +24,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-kafka-0.11_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.danielasfregola</groupId>
             <artifactId>twitter4s_${scala.binary.version}</artifactId>
             <version>5.5</version>
