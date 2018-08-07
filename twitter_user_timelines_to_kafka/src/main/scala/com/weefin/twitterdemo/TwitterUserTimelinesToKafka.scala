@@ -6,7 +6,7 @@ import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.SimpleStatus
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
-import com.weefin.twitterdemo.utils.twitter.source.AsyncRestRequest
+import com.weefin.twitterdemo.utils.twitter.source.AsyncTwitterRequest
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.async.ResultFuture
 
@@ -34,7 +34,7 @@ object TwitterUserTimelinesToKafka extends App with LazyLogging {
       )
 
   private def AsyncTimelineRequest =
-    new AsyncRestRequest[Long, Tweet](
+    new AsyncTwitterRequest[Long, Tweet](
       params.consumerKey,
       params.consumerSecret,
       params.token,

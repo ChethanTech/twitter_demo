@@ -11,7 +11,7 @@ import com.weefin.twitterdemo.utils.twitter.entities.{
 }
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.{
-  AsyncRestRequest,
+  AsyncTwitterRequest,
   KafkaJsonConsumer
 }
 import org.apache.flink.streaming.api.scala._
@@ -73,7 +73,7 @@ object ClassifyUsers extends App with LazyLogging {
                                           confidence: Float)
 
   private def AsyncTimelineRequest =
-    new AsyncRestRequest[SimpleUser, (SimpleUser, Seq[Tweet])](
+    new AsyncTwitterRequest[SimpleUser, (SimpleUser, Seq[Tweet])](
       params.consumerKey,
       params.consumerSecret,
       params.token,

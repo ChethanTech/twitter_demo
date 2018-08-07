@@ -7,10 +7,10 @@ import org.apache.flink.streaming.api.scala.async.AsyncFunction
 
 import scala.concurrent.ExecutionContext
 
-abstract class AsyncRestRequest[T, U](consumerKey: String,
-                                      consumerSecret: String,
-                                      token: String,
-                                      tokenSecret: String)
+abstract class AsyncTwitterRequest[T, U](consumerKey: String,
+                                         consumerSecret: String,
+                                         token: String,
+                                         tokenSecret: String)
     extends AsyncFunction[T, U] {
 
   protected lazy val client = TwitterRestClient(
