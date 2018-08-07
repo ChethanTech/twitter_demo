@@ -29,7 +29,7 @@ object ClassifyUsers extends App with LazyLogging {
     env.addSource(consumer).flatMap(identity(_))
 
   private val timelines: DataStream[(SimpleUser, Seq[Tweet])] = AsyncDataStream
-    .unorderedWait(users, AsyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
+    .unorderedWait(users, asyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
     .filter(_._2.nonEmpty)
 
   private val simpleTimelines: DataStream[(SimpleUser, Seq[SimpleStatus])] =
@@ -72,7 +72,7 @@ object ClassifyUsers extends App with LazyLogging {
                                           classification: Seq[Classification],
                                           confidence: Float)
 
-  private def AsyncTimelineRequest =
+  private def asyncTimelineRequest =
     new AsyncTwitterRequest[SimpleUser, (SimpleUser, Seq[Tweet])](
       params.consumerKey,
       params.consumerSecret,
