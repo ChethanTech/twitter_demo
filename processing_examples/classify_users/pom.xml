@@ -38,11 +38,6 @@
             <artifactId>utils_${scala.binary.version}</artifactId>
             <version>0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.binary.version}</artifactId>
-            <version>7.3.0-M24</version>
-        </dependency>
     </dependencies>
 
     <build>
