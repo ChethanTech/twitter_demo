@@ -7,19 +7,28 @@ import scala.util.Try
 case class Classification(label: Label.Value, weight: Option[Float] = None)
 
 object Classification {
-  def fromWord(w: String) = Classification(getLabel(w))
+  def fromWord(w: String): Classification = Classification(getLabel(w))
 
   def fromWords(ws: Seq[String]): Seq[Classification] =
+    classify(ws)
+      .map(t => Classification(t._1, Some(t._2)))
+      .toSeq
+
+  private def classify(ws: Seq[String]): Map[Label.Value, Float] =
     ws.map(getLabel(_))
       .groupBy(identity)
       .mapValues(_.size.toFloat / ws.size)
-      .map(t => Classification(t._1, Some(t._2)))
-      .toSeq
+
+  def serializableMap(ws: Seq[String]): Map[String, Float] =
+    classify(ws)
+      .map(t => t._1.toString -> t._2)
 
   def getMainClassification(cs: Seq[Classification]): Option[Classification] =
     Try(cs.maxBy(_.weight)).toOption
 
-  def getMainDefinedClassification(cs: Seq[Classification]) =
+  def getMainDefinedClassification(
+    cs: Seq[Classification]
+  ): Option[Classification] =
     getMainClassification(cs.filterNot(_.label == Label.Other))
 
   private val terms = Map(
