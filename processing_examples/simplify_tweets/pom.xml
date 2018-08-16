@@ -10,11 +10,11 @@
 		<version>0.1</version>
 	</parent>
 
-    <artifactId>simplify_statuses</artifactId>
+    <artifactId>simplify_tweets</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
-    <name>Simplify Statuses</name>
+    <name>Simplify Tweets</name>
 
     <dependencies>
         <dependency>
@@ -65,7 +65,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.weefin.twitterdemo.SimplifyStatuses</mainClass>
+                                    <mainClass>com.weefin.twitterdemo.SimplifyTweets</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
