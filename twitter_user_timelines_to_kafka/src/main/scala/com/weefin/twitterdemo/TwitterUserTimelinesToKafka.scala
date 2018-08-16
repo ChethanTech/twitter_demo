@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit
 
 import com.danielasfregola.twitter4s.entities.Tweet
 import com.typesafe.scalalogging.LazyLogging
-import com.weefin.twitterdemo.utils.twitter.entities.SimpleStatus
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.AsyncTwitterRequest
 import org.apache.flink.streaming.api.scala._
@@ -18,46 +17,48 @@ object TwitterUserTimelinesToKafka extends App with LazyLogging {
   private val env = StreamExecutionEnvironment.getExecutionEnvironment
   logger.info(s"$jobName job started")
 
-  AsyncTimelinesStream(env.fromCollection(params.userIds))
-    .map(SimpleStatus(_))
-    .addSink(producer)
+  val users: DataStream[Long] = env.fromCollection(params.userIds)
+
+  val timelines: DataStream[Seq[Tweet]] = AsyncDataStream
+    .unorderedWait(users, asyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
+
+  val tweets: DataStream[Tweet] = timelines.flatMap(identity(_))
+
+  tweets.addSink(producer)
   env.execute(jobName)
 
-  private def AsyncTimelinesStream(userIdStream: DataStream[Long]) =
-    AsyncDataStream
-      .unorderedWait(
-        userIdStream,
-        AsyncTimelineRequest,
-        10,
-        TimeUnit.SECONDS,
-        20
-      )
-
-  private def AsyncTimelineRequest =
-    new AsyncTwitterRequest[Long, Tweet](
+  private def asyncTimelineRequest =
+    new AsyncTwitterRequest[Long, Seq[Tweet]](
       params.consumerKey,
       params.consumerSecret,
       params.token,
       params.tokenSecret
     ) {
-      override def asyncInvoke(input: Long,
-                               resultFuture: ResultFuture[Tweet]): Unit = {
+      override def timeout(user: Long,
+                           resultFuture: ResultFuture[Seq[Tweet]]): Unit = {
+        logger.warn(s"Get timeline for user id $user: query timed out")
+        resultFuture.complete(Iterable.empty)
+      }
+
+      override def asyncInvoke(user: Long,
+                               resultFuture: ResultFuture[Seq[Tweet]]): Unit =
         client
-          .userTimelineForUserId(input)
+          .userTimelineForUserId(user)
           .map(_.data)
           .onComplete {
-            case Success(tweets) =>
-              logger.info(s"Received timeline for user id $input")
-              resultFuture.complete(tweets)
+            case Success(timeline) =>
+              logger.info(
+                s"Get timeline for user id $user: received the ${timeline.length} most recent Tweets"
+              )
+              resultFuture.complete(Iterable(timeline))
             case Failure(throwable) =>
               logger.warn(
-                s"Invalid response for user id $input: ${throwable.getMessage}"
+                s"Get timeline for user id $user: received error '${throwable.getMessage}'"
               )
               resultFuture.complete(Iterable.empty)
           }
-      }
     }
 
   private def producer =
-    KafkaJsonProducer[SimpleStatus](params.bootstrapServers, params.topicId)
+    KafkaJsonProducer[Tweet](params.bootstrapServers, params.topicId)
 }
