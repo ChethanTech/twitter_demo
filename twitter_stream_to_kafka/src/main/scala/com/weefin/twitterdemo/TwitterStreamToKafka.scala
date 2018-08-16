@@ -14,9 +14,9 @@ object TwitterStreamToKafka extends App with LazyLogging {
 
   env
     .addSource(twitterSource)
-    .filter(
-      t => logger.trace(s"Received status: ${t.substring(0, 75)}…").->(true)._2
-    )
+    .filter { t =>
+      logger.trace(s"Received status: ${t.substring(0, 75)}…").->(true)._2
+    }
     .addSink(producer)
 
   env.execute(jobName)
