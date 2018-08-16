@@ -1,35 +1,32 @@
 package com.weefin.twitterdemo.utils.twitter.entities
 
-import com.weefin.twitterdemo.utils.twitter.entities.Classification.Label
-
 import scala.util.Try
 
-case class Classification(label: Label.Value, weight: Option[Float] = None)
-
 object Classification {
-  def fromWord(w: String): Classification = Classification(getLabel(w))
 
-  def fromWords(ws: Seq[String]): Seq[Classification] =
-    classify(ws)
-      .map(t => Classification(t._1, Some(t._2)))
-      .toSeq
+  def merge(ms: Map[Label.Value, Float]*): Map[Label.Value, Float] =
+    ms.reduceOption { (a, m) =>
+        a ++ m.map {
+          case (k, v) => k -> (v + a.getOrElse(k, 0F))
+        }
+      }
+      .getOrElse(Map.empty)
+      .mapValues(_ / ms.length)
 
-  private def classify(ws: Seq[String]): Map[Label.Value, Float] =
+  def classify(ws: String*): Map[Label.Value, Float] =
     ws.map(getLabel(_))
       .groupBy(identity)
       .mapValues(_.size.toFloat / ws.size)
 
-  def serializableMap(ws: Seq[String]): Map[String, Float] =
-    classify(ws)
-      .map(t => t._1.toString -> t._2)
+  def stringify(m: Map[Label.Value, Float]): Map[String, Float] = m.map {
+    case (k, v) => k.toString -> v
+  }
 
-  def getMainClassification(cs: Seq[Classification]): Option[Classification] =
-    Try(cs.maxBy(_.weight)).toOption
+  def getMainLabel(m: Map[Label.Value, Float]): Option[Label.Value] =
+    Try(m.maxBy(_._2)._1).toOption
 
-  def getMainDefinedClassification(
-    cs: Seq[Classification]
-  ): Option[Classification] =
-    getMainClassification(cs.filterNot(_.label == Label.Other))
+  def getMainDefinedLabel(m: Map[Label.Value, Float]): Option[Label.Value] =
+    getMainLabel(m.filterNot(_._1 == Label.Other))
 
   private val terms = Map(
     /* A */

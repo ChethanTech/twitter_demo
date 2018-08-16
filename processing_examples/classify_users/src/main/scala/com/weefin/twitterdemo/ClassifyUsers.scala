@@ -36,29 +36,22 @@ object ClassifyUsers extends App with LazyLogging {
     timelines.map(t => (t._1, t._2.map(SimpleStatus(_))))
 
   private val classifiedUsers1
-    : DataStream[(SimpleUser, Seq[Seq[Classification]])] =
+    : DataStream[(SimpleUser, Seq[Map[Classification.Label.Value, Float]])] =
     simpleTimelines.map { t =>
       (
         t._1,
         t._2
-          .map(s => Classification.fromWords(s.hashtags))
+          .map(s => Classification.classify(s.hashtags: _*))
           .filterNot(_.isEmpty)
       )
     }
 
   private val classifiedUsers2
-    : DataStream[(SimpleUser, Seq[Classification], Float)] =
+    : DataStream[(SimpleUser, Map[String, Float], Float)] =
     classifiedUsers1.map { t =>
       (
         t._1,
-        t._2
-          .reduceOption(_ ++ _)
-          .getOrElse(Seq.empty)
-          .groupBy(_.label)
-          .mapValues(_.flatMap(_.weight))
-          .mapValues(_.sum / t._2.length)
-          .map(c => Classification(c._1, Some(c._2)))
-          .toSeq,
+        Classification.stringify(Classification.merge(t._2: _*)),
         Math.min(1F, t._2.length / 25F)
       )
     }
@@ -69,7 +62,7 @@ object ClassifyUsers extends App with LazyLogging {
   env.execute(jobName)
 
   private case class ClassifiedSimpleUser(user: SimpleUser,
-                                          classification: Seq[Classification],
+                                          classification: Map[String, Float],
                                           confidence: Float)
 
   private def asyncTimelineRequest =
