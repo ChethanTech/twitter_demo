@@ -18,16 +18,18 @@ object ClassifyTweets extends App with LazyLogging {
   private val jobName = this.getClass.getSimpleName.split("\\$").last
   private val params = Parameters(args)
   private val env = StreamExecutionEnvironment.getExecutionEnvironment
+  private type SS = SimpleStatus
+  private type CSS = ClassifiedEntity[SS]
   logger.info(s"$jobName job started")
 
   private val tweets: DataStream[Tweet] =
     env.addSource(consumer).flatMap(identity(_))
 
-  private val simpleStatuses: DataStream[SimpleStatus] =
+  private val simpleTweets: DataStream[SS] =
     tweets.map(SimpleStatus(_))
 
-  private val classifiedStatuses: DataStream[ClassifiedEntity[SimpleStatus]] =
-    simpleStatuses.map(csvClassificationMap)
+  private val classifiedStatuses: DataStream[CSS] =
+    simpleTweets.map(csvClassificationMap)
 
   classifiedStatuses.addSink(producer)
   env.execute(jobName)
@@ -42,10 +44,8 @@ object ClassifyTweets extends App with LazyLogging {
   }
 
   private def csvClassificationMap =
-    new ClassificationMap[SimpleStatus, ClassifiedEntity[SimpleStatus]](
-      csvToMap(params.classificationFile)
-    ) {
-      override def map(status: SimpleStatus) =
+    new ClassificationMap[SS, CSS](csvToMap(params.classificationFile)) {
+      override def map(status: SS) =
         ClassifiedEntity(status, fromWords(status.hashtags: _*))
     }
 
@@ -57,7 +57,7 @@ object ClassifyTweets extends App with LazyLogging {
     )
 
   private def producer =
-    KafkaJsonProducer[ClassifiedEntity[SimpleStatus]](
+    KafkaJsonProducer[CSS](
       params.producerBootstrapServers,
       params.producerTopicId
     )
