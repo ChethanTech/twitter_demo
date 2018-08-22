@@ -3,12 +3,14 @@ package com.weefin.twitterdemo
 import java.util.concurrent.TimeUnit
 
 import com.danielasfregola.twitter4s.entities.Tweet
+import com.github.tototoshi.csv.CSVReader
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.{
-  Classification,
+  ClassifiedEntity,
   SimpleStatus,
   SimpleUser
 }
+import com.weefin.twitterdemo.utils.twitter.map.ClassificationMap
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.{
   AsyncTwitterRequest,
@@ -17,72 +19,72 @@ import com.weefin.twitterdemo.utils.twitter.source.{
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.async.ResultFuture
 
-import scala.util.{Failure, Success}
+import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 object ClassifyUsers extends App with LazyLogging {
   private val jobName = this.getClass.getSimpleName.split("\\$").last
   private val params = Parameters(args)
   private val env = StreamExecutionEnvironment.getExecutionEnvironment
+  private type SU = SimpleUser
+  private type CSU = ClassifiedEntity[SU]
+  private type SS = SimpleStatus
   logger.info(s"$jobName job started")
 
-  private val users: DataStream[SimpleUser] =
+  private val users: DataStream[SU] =
     env.addSource(consumer).flatMap(identity(_))
 
-  private val timelines: DataStream[(SimpleUser, Seq[Tweet])] = AsyncDataStream
+  private val timelines: DataStream[(SU, Seq[Tweet])] = AsyncDataStream
     .unorderedWait(users, asyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
     .filter(_._2.nonEmpty)
 
-  private val simpleTimelines: DataStream[(SimpleUser, Seq[SimpleStatus])] =
+  private val simpleTimelines: DataStream[(SU, Seq[SS])] =
     timelines.map(t => (t._1, t._2.map(SimpleStatus(_))))
 
-  private val classifiedUsers1
-    : DataStream[(SimpleUser, Seq[Map[Classification.Label.Value, Float]])] =
-    simpleTimelines.map { t =>
-      (
-        t._1,
-        t._2
-          .map(s => Classification.classify(s.hashtags: _*))
-          .filterNot(_.isEmpty)
-      )
-    }
+  private val classifiedUsers =
+    simpleTimelines.map(csvClassificationMap)
 
-  private val classifiedUsers2
-    : DataStream[(SimpleUser, Map[String, Float], Float)] =
-    classifiedUsers1.map { t =>
-      (
-        t._1,
-        Classification.stringify(Classification.merge(t._2: _*)),
-        Math.min(1F, t._2.length / 25F)
-      )
-    }
-
-  classifiedUsers2
-    .map(ClassifiedSimpleUser.tupled(_))
-    .addSink(producer)
+  classifiedUsers.addSink(producer)
   env.execute(jobName)
 
-  private case class ClassifiedSimpleUser(user: SimpleUser,
-                                          classification: Map[String, Float],
-                                          confidence: Float)
+  private def csvToMap(y: String): Map[String, (String, Float)] = {
+    val reader = CSVReader.open(Source.fromFile(y))
+    val map = reader.allWithHeaders.map { m =>
+      m("term").toLowerCase -> (m("label"), m.getOrElse("weight", "1").toFloat)
+    }.toMap
+    reader.close
+    map
+  }
+
+  private def csvClassificationMap =
+    new ClassificationMap[(SU, Seq[SS]), CSU](
+      csvToMap(params.classificationFile)
+    ) {
+      override def map(value: (SU, Seq[SS])) = {
+        val cs = value._2.flatMap(x => fromWords(x.hashtags: _*))
+        val m = Try(cs.groupBy(identity).maxBy(_._2.size)._1).toOption
+        ClassifiedEntity(value._1, m, Some(Math.min(1F, cs.length / 25F)))
+      }
+    }
 
   private def asyncTimelineRequest =
-    new AsyncTwitterRequest[SimpleUser, (SimpleUser, Seq[Tweet])](
+    new AsyncTwitterRequest[SU, (SU, Seq[Tweet])](
       params.consumerKey,
       params.consumerSecret,
       params.token,
       params.tokenSecret
     ) {
       override def timeout(
-        user: SimpleUser,
-        resultFuture: ResultFuture[(SimpleUser, Seq[Tweet])]
+        user: SU,
+        resultFuture: ResultFuture[(SU, Seq[Tweet])]
       ): Unit = {
         logger.warn(s"Get timeline for user id ${user.id}: query timed out")
         resultFuture.complete(Iterable.empty)
       }
 
       override def asyncInvoke(
-        user: SimpleUser,
-        resultFuture: ResultFuture[(SimpleUser, Seq[Tweet])]
+        user: SU,
+        resultFuture: ResultFuture[(SU, Seq[Tweet])]
       ): Unit =
         client
           .userTimelineForUserId(user.id)
@@ -102,14 +104,14 @@ object ClassifyUsers extends App with LazyLogging {
     }
 
   private def consumer =
-    KafkaJsonConsumer[SimpleUser](
+    KafkaJsonConsumer[SU](
       params.consumerBootstrapServers,
       params.consumerTopicId,
       params.consumerGroupId
     )
 
   private def producer =
-    KafkaJsonProducer[ClassifiedSimpleUser](
+    KafkaJsonProducer[CSU](
       params.producerBootstrapServers,
       params.producerTopicId
     )

@@ -1,14 +1,18 @@
 package com.weefin.twitterdemo
 
 import com.danielasfregola.twitter4s.entities.Tweet
+import com.github.tototoshi.csv.CSVReader
 import com.typesafe.scalalogging.LazyLogging
 import com.weefin.twitterdemo.utils.twitter.entities.{
-  Classification,
+  ClassifiedEntity,
   SimpleStatus
 }
+import com.weefin.twitterdemo.utils.twitter.map.ClassificationMap
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.KafkaJsonConsumer
 import org.apache.flink.streaming.api.scala._
+
+import scala.io.Source
 
 object ClassifyTweets extends App with LazyLogging {
   private val jobName = this.getClass.getSimpleName.split("\\$").last
@@ -22,16 +26,28 @@ object ClassifyTweets extends App with LazyLogging {
   private val simpleStatuses: DataStream[SimpleStatus] =
     tweets.map(SimpleStatus(_))
 
-  private val richStatuses: DataStream[RichStatus] = simpleStatuses
-    .map { s =>
-      RichStatus(
-        s,
-        Classification.stringify(Classification.classify(s.hashtags: _*))
-      )
-    }
+  private val classifiedStatuses: DataStream[ClassifiedEntity[SimpleStatus]] =
+    simpleStatuses.map(csvClassificationMap)
 
-  richStatuses.addSink(producer)
+  classifiedStatuses.addSink(producer)
   env.execute(jobName)
+
+  private def csvToMap(y: String): Map[String, (String, Float)] = {
+    val reader = CSVReader.open(Source.fromFile(y))
+    val map = reader.allWithHeaders.map { m =>
+      m("term").toLowerCase -> (m("label"), m.getOrElse("weight", "1").toFloat)
+    }.toMap
+    reader.close
+    map
+  }
+
+  private def csvClassificationMap =
+    new ClassificationMap[SimpleStatus, ClassifiedEntity[SimpleStatus]](
+      csvToMap(params.classificationFile)
+    ) {
+      override def map(status: SimpleStatus) =
+        ClassifiedEntity(status, fromWords(status.hashtags: _*))
+    }
 
   private def consumer =
     KafkaJsonConsumer[Tweet](
@@ -41,12 +57,8 @@ object ClassifyTweets extends App with LazyLogging {
     )
 
   private def producer =
-    KafkaJsonProducer[RichStatus](
+    KafkaJsonProducer[ClassifiedEntity[SimpleStatus]](
       params.producerBootstrapServers,
       params.producerTopicId
     )
-
-  private case class RichStatus(status: SimpleStatus,
-                                classification: Map[String, Float] = Map.empty)
-
 }

@@ -45,13 +45,18 @@
         </dependency>
         <dependency>
             <groupId>com.sksamuel.elastic4s</groupId>
-            <artifactId>elastic4s-core_2.11</artifactId>
+            <artifactId>elastic4s-core_${scala.binary.version}</artifactId>
             <version>6.3.4</version>
         </dependency>
         <dependency>
             <groupId>com.sksamuel.elastic4s</groupId>
-            <artifactId>elastic4s-http_2.11</artifactId>
+            <artifactId>elastic4s-http_${scala.binary.version}</artifactId>
             <version>6.3.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tototoshi</groupId>
+            <artifactId>scala-csv_${scala.binary.version}</artifactId>
+            <version>1.3.5</version>
         </dependency>
     </dependencies>
 </project>

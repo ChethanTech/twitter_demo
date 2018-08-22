@@ -8,7 +8,8 @@ case class Parameters(producerBootstrapServers: String,
                       producerTopicId: String,
                       consumerBootstrapServers: String,
                       consumerGroupId: String,
-                      consumerTopicId: String)
+                      consumerTopicId: String,
+                      classificationFile: String)
 
 object Parameters {
   private val defaultBootstrapServers = "localhost:9092"
@@ -21,7 +22,8 @@ object Parameters {
         params.getRequired("producer.topic.id"),
         params.get("consumer.bootstrap.servers", defaultBootstrapServers),
         params.getRequired("consumer.group.id"),
-        params.getRequired("consumer.topic.id")
+        params.getRequired("consumer.topic.id"),
+        params.getRequired("classification-file")
       )
     ).getOrElse(throwInvalidArgs)
   }
@@ -33,6 +35,7 @@ object Parameters {
 			| --consumer.topic.id <id>
 			| --producer.bootstrap.servers <server1[,server2,...]>
 			| --producer.topic.id <id>
+			| --classification-file <path>
 			| """.stripMargin
   )
 }
