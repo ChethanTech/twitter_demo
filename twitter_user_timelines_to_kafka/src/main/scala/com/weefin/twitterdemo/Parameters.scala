@@ -11,7 +11,8 @@ case class Parameters(userIds: Seq[Long],
                       token: String,
                       tokenSecret: String,
                       bootstrapServers: String,
-                      topicId: String)
+                      topicId: String,
+                      tweetCount: Option[Int])
 
 object Parameters {
   private val defaultBootstrapServers = "localhost:9092"
@@ -26,7 +27,8 @@ object Parameters {
         params.getRequired(TwitterSource.TOKEN),
         params.getRequired(TwitterSource.TOKEN_SECRET),
         params.get("bootstrap.servers", defaultBootstrapServers),
-        params.getRequired("topic.id")
+        params.getRequired("topic.id"),
+        Option(params.get("tweet-count")).map(_.toInt)
       )
     ).getOrElse(throwInvalidArgs)
   }
@@ -45,6 +47,7 @@ object Parameters {
 			| --twitter-source.tokenSecret <tokenSecret>
 			| --bootstrap.servers <server1[,server2,...]>
 			| --topic.id <id>
+			| --tweet-count <count>
 			| """.stripMargin
     )
 }
