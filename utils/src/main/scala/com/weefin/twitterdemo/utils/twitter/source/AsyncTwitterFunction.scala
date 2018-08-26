@@ -28,14 +28,14 @@ abstract class AsyncTwitterFunction[T, U](consumerKey: String,
                             queryCount: Option[Int]): Future[Seq[Tweet]] = {
     def getChunk(id: Long, ts: Seq[Tweet], q: Int): Future[Seq[Tweet]] =
       client
-        .userTimelineForUserId(user_id = id, max_id = ts.lastOption.map(_.id))
+        .userTimelineForUserId(user_id = id, max_id = ts.headOption.map(_.id))
         .map(_.data)
         .flatMap(t => {
-          val nts = ts.dropRight(1) ++ t
+          val nts = t.reverse ++ ts.drop(1)
           if (t.size <= 1 ||
               queryCount.exists(q >= _) ||
               tweetCount.exists(nts.size >= _))
-            Future.successful(nts.take(tweetCount.getOrElse(nts.size)))
+            Future.successful(nts.takeRight(tweetCount.getOrElse(nts.size)))
           else getChunk(id, nts, q + 1)
         })
     getChunk(userId, Seq.empty, 1)
