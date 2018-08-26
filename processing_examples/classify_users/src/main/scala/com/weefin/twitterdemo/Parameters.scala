@@ -14,7 +14,9 @@ case class Parameters(consumerKey: String,
                       consumerGroupId: String,
                       consumerTopicId: String,
                       producerTopicId: String,
-                      classificationFile: String)
+                      classificationFile: String,
+                      tweetCount: Option[Int],
+                      queryCount: Option[Int])
 
 object Parameters {
   private val defaultBootstrapServers = "localhost:9092"
@@ -32,7 +34,9 @@ object Parameters {
         params.getRequired("consumer.group.id"),
         params.getRequired("consumer.topic.id"),
         params.getRequired("producer.topic.id"),
-        params.getRequired("classification-file")
+        params.getRequired("classification-file"),
+        Option(params.get("tweet-count")).map(_.toInt),
+        Option(params.get("query-count")).map(_.toInt)
       )
     ).getOrElse(throwInvalidArgs)
   }
@@ -50,6 +54,8 @@ object Parameters {
 	      | --consumer.topic.id <id>
 	      | --producer.topic.id <id>
 	      | --classification-file <path>
+	      | --tweet-count <count>
+	      | --query-count <count>
 	      | """.stripMargin
     )
 }

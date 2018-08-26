@@ -13,7 +13,7 @@ import com.weefin.twitterdemo.utils.twitter.entities.{
 import com.weefin.twitterdemo.utils.twitter.map.ClassificationMap
 import com.weefin.twitterdemo.utils.twitter.sink.KafkaJsonProducer
 import com.weefin.twitterdemo.utils.twitter.source.{
-  AsyncTwitterRequest,
+  AsyncTwitterFunction,
   KafkaJsonConsumer
 }
 import org.apache.flink.streaming.api.scala._
@@ -35,7 +35,13 @@ object ClassifyUsers extends App with LazyLogging {
     env.addSource(consumer).flatMap(identity(_))
 
   private val timelines: DataStream[(SU, Seq[Tweet])] = AsyncDataStream
-    .unorderedWait(users, asyncTimelineRequest, 5, TimeUnit.SECONDS, 100)
+    .unorderedWait(
+      users,
+      asyncTimelineRequest(params.tweetCount, params.queryCount),
+      5,
+      TimeUnit.SECONDS,
+      100
+    )
     .filter(_._2.nonEmpty)
 
   private val simpleTimelines: DataStream[(SU, Seq[SS])] =
@@ -67,8 +73,9 @@ object ClassifyUsers extends App with LazyLogging {
       }
     }
 
-  private def asyncTimelineRequest =
-    new AsyncTwitterRequest[SU, (SU, Seq[Tweet])](
+  private def asyncTimelineRequest(tweetCount: Option[Int],
+                                   queryCount: Option[Int]) =
+    new AsyncTwitterFunction[SU, (SU, Seq[Tweet])](
       params.consumerKey,
       params.consumerSecret,
       params.token,
@@ -86,21 +93,18 @@ object ClassifyUsers extends App with LazyLogging {
         user: SU,
         resultFuture: ResultFuture[(SU, Seq[Tweet])]
       ): Unit =
-        client
-          .userTimelineForUserId(user.id)
-          .map(_.data)
-          .onComplete {
-            case Success(tweets) =>
-              logger.info(
-                s"Get timeline for user id ${user.id}: received the ${tweets.length} most recent Tweets"
-              )
-              resultFuture.complete(Iterable((user, tweets)))
-            case Failure(throwable) =>
-              logger.warn(
-                s"Get timeline for user id ${user.id}: received error '${throwable.getMessage}'"
-              )
-              resultFuture.complete(Iterable.empty)
-          }
+        getTimeline(user.id, tweetCount, queryCount).onComplete {
+          case Success(tweets) =>
+            logger.info(
+              s"Get timeline for user id ${user.id}: received the ${tweets.length} most recent Tweets"
+            )
+            resultFuture.complete(Iterable((user, tweets)))
+          case Failure(throwable) =>
+            logger.warn(
+              s"Get timeline for user id ${user.id}: received error '${throwable.getMessage}'"
+            )
+            resultFuture.complete(Iterable.empty)
+        }
     }
 
   private def consumer =

@@ -12,7 +12,8 @@ case class Parameters(userIds: Seq[Long],
                       tokenSecret: String,
                       bootstrapServers: String,
                       topicId: String,
-                      tweetCount: Option[Int])
+                      tweetCount: Option[Int],
+                      queryCount: Option[Int])
 
 object Parameters {
   private val defaultBootstrapServers = "localhost:9092"
@@ -28,7 +29,8 @@ object Parameters {
         params.getRequired(TwitterSource.TOKEN_SECRET),
         params.get("bootstrap.servers", defaultBootstrapServers),
         params.getRequired("topic.id"),
-        Option(params.get("tweet-count")).map(_.toInt)
+        Option(params.get("tweet-count")).map(_.toInt),
+        Option(params.get("query-count")).map(_.toInt)
       )
     ).getOrElse(throwInvalidArgs)
   }
@@ -48,6 +50,7 @@ object Parameters {
 			| --bootstrap.servers <server1[,server2,...]>
 			| --topic.id <id>
 			| --tweet-count <count>
+			| --query-count <count>
 			| """.stripMargin
     )
 }
