@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source conf.cfg
+source conf1.cfg
 cd "$platformPath"
 
 ./flink-1.5.2/bin/stop-cluster.sh

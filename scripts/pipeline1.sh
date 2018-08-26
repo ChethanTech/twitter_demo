@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source conf.cfg
+source conf1.cfg
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 cd "$platformPath"
 
@@ -12,13 +12,13 @@ cd "$platformPath"
     --twitter-source.token "$token" \
     --twitter-source.tokenSecret "$tokenSecret" \
     --bootstrap.servers "localhost:9092" \
-    --topic.id "raw_tweets"
+    --topic.id "pipeline1_raw_tweets"
 
 ./flink-1.5.2/bin/flink run -d "$dir/../processing_examples/classify_tweets/target/classify_tweets-0.1.jar" \
     --consumer.bootstrap.servers "localhost:9092" \
     --producer.bootstrap.servers "localhost:9092" \
     --consumer.group.id "g1" \
-    --consumer.topic.id "raw_tweets" \
-    --producer.topic.id "rich_tweets" \
+    --consumer.topic.id "pipeline1_raw_tweets" \
+    --producer.topic.id "pipeline1_rich_tweets" \
     --classification-file "$classificationFile"
 
