@@ -45,8 +45,12 @@ object ClassifyTweets extends App with LazyLogging {
 
   private def csvClassificationMap =
     new ClassificationMap[SS, CSS](csvToMap(params.classificationFile)) {
-      override def map(status: SS) =
-        ClassifiedEntity(status, fromWords(status.hashtags: _*))
+      override def map(status: SS) = {
+        ClassifiedEntity(
+          status,
+          fromWords(status.allHashtags ++ status.allWords: _*)
+        )
+      }
     }
 
   private def consumer =

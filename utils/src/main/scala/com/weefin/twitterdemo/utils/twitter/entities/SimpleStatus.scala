@@ -32,6 +32,20 @@ case class SimpleStatus(created_at: Date,
       text = tweet.extended_tweet.map(_.full_text).getOrElse(tweet.text),
       user = tweet.user.map(SimpleUser(_))
     )
+
+  def allHashtags: Seq[String] =
+    retweeted_status
+      .map(_.hashtags)
+      .getOrElse(quoted_status.map(_.hashtags).getOrElse(Seq.empty) ++ hashtags)
+
+  def allWords: Seq[String] =
+    retweeted_status
+      .map(_.text.split("\\s+").map(_.toLowerCase).toSeq)
+      .getOrElse(
+        quoted_status
+          .map(_.text.split("\\s+").map(_.toLowerCase).toSeq)
+          .getOrElse(Seq.empty) ++ text.split("\\s+").map(_.toLowerCase).toSeq
+      )
 }
 
 object SimpleStatus {
