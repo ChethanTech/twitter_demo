@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source global.cfg
+source ../config/global.cfg
 cd "$platformPath"
 
 ./zookeeper-3.4.12/bin/zkServer.sh start zookeeper-3.4.12/conf/zoo.cfg &

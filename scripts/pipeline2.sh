@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-source global.cfg
-source pipeline2.cfg
+source ../config/global.cfg
+source ../config/pipeline2.cfg
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 cd "$platformPath"
 
