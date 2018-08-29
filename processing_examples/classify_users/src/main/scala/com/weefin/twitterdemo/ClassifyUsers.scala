@@ -67,7 +67,7 @@ object ClassifyUsers extends App with LazyLogging {
       csvToMap(params.classificationFile)
     ) {
       override def map(value: (SU, Seq[SS])) = {
-        val cs = value._2.flatMap(x => fromWords(x.hashtags: _*))
+        val cs: Seq[String] = value._2.flatMap(fromSimpleStatuses(Some(3), _))
         val m = Try(cs.groupBy(identity).maxBy(_._2.size)._1).toOption
         ClassifiedEntity(value._1, m, Some(Math.min(1F, cs.length / 25F)))
       }
