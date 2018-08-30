@@ -3,11 +3,12 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-	
+
 	<parent>
 		<groupId>com.weefin.twitterdemo</groupId>
 		<artifactId>twitter_demo</artifactId>
 		<version>0.1</version>
+    <relativePath>../pom.xml</relativePath>
 	</parent>
 
     <artifactId>twitter_user_timelines_to_kafka</artifactId>
